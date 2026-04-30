@@ -2,915 +2,634 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OI + CVD Futures Lab</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Futures OI + CVD Lab | Multi-Symbol</title>
     <style>
-        :root {
-            --bg-primary: #0a0e17;
-            --bg-secondary: #131a29;
-            --bg-card: #1a233a;
-            --text-primary: #e6eef7;
-            --text-secondary: #94a3b8;
-            --accent-blue: #3b82f6;
-            --accent-green: #10b981;
-            --accent-red: #ef4444;
-            --accent-yellow: #f59e0b;
-            --border-color: #2d3748;
-            --success-bg: rgba(16, 185, 129, 0.15);
-            --warning-bg: rgba(245, 158, 11, 0.15);
-            --danger-bg: rgba(239, 68, 68, 0.15);
-        }
-        
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            line-height: 1.6;
-            padding: 16px;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        
-        /* 🔗 Navigation Bar - BOLAK-BALIK LINK */
-        .nav-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 20px;
-            background: var(--bg-secondary);
-            border-radius: 12px;
-            margin-bottom: 20px;
-            border: 1px solid var(--border-color);
-            position: sticky;
-            top: 10px;
-            z-index: 100;
-        }
-        
-        .nav-logo {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: var(--accent-blue);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .nav-links {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-        }
-        
-        .nav-btn {
-            padding: 8px 16px;
-            background: var(--accent-blue);
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: 500;
-            font-size: 0.9rem;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        
-        .nav-btn:hover {
-            background: #2563eb;
-            transform: translateY(-1px);
-        }
-        
-        .nav-btn.tutorial {
-            background: var(--accent-green);
-        }
-        
-        .nav-btn.tutorial:hover {
-            background: #059669;
-        }
-        
-        .nav-btn.main {
-            background: var(--accent-yellow);
-            color: #1a233a;
-        }
-        
-        .nav-btn.main:hover {
-            background: #d97706;
-        }
-        
-        /* Header Styles */
-        header {
-            text-align: center;
-            padding: 24px 20px;
-            margin-bottom: 24px;
-            background: var(--bg-secondary);
-            border-radius: 16px;
-            border: 1px solid var(--border-color);
-        }
-        
-        header h1 {
-            font-size: 1.8rem;
-            margin-bottom: 8px;
-            background: linear-gradient(135deg, var(--accent-blue), var(--accent-green));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        header p {
-            color: var(--text-secondary);
-            font-size: 1rem;
-        }
-        
-        /* Symbol Selector */
-        .symbol-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px 20px;
-            background: var(--bg-card);
-            border-radius: 12px;
-            margin-bottom: 20px;
-            border: 1px solid var(--border-color);
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-        
-        .symbol-select {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .symbol-select label {
-            font-weight: 500;
-            color: var(--text-secondary);
-        }
-        
-        .symbol-select select {
-            padding: 10px 16px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            color: var(--text-primary);
-            font-size: 1rem;
-            min-width: 120px;
-        }
-        
-        .contract-info {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-        
-        .contract-info span {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        
-        .inverse-warning {
-            background: var(--warning-bg);
-            color: var(--accent-yellow);
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-weight: 500;
-            font-size: 0.8rem;
-        }
-        
-        /* Filter Bar */
-        .filter-bar {
-            display: flex;
-            gap: 8px;
-            padding: 12px;
-            background: var(--bg-card);
-            border-radius: 12px;
-            margin-bottom: 24px;
-            border: 1px solid var(--border-color);
-            overflow-x: auto;
-            flex-wrap: wrap;
-        }
-        
-        .filter-btn {
-            padding: 8px 16px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            color: var(--text-primary);
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.2s;
-            white-space: nowrap;
-        }
-        
-        .filter-btn:hover, .filter-btn.active {
-            background: var(--accent-blue);
-            border-color: var(--accent-blue);
-        }
-        
-        .filter-btn.high-prob {
-            background: var(--success-bg);
-            border-color: var(--accent-green);
-            color: var(--accent-green);
-            font-weight: 500;
-        }
-        
-        .filter-btn.high-prob:hover, .filter-btn.high-prob.active {
-            background: var(--accent-green);
-            color: white;
-        }
-        
-        .export-btn {
-            margin-left: auto;
-            padding: 8px 16px;
-            background: var(--accent-green);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.2s;
-        }
-        
-        .export-btn:hover {
-            background: #059669;
-            transform: translateY(-1px);
-        }
-        
-        /* Setup Grid */
-        .setup-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-            gap: 20px;
-            margin-bottom: 32px;
-        }
-        
-        .setup-card {
-            background: var(--bg-card);
-            border-radius: 16px;
-            padding: 20px;
-            border: 1px solid var(--border-color);
-            transition: all 0.2s;
-        }
-        
-        .setup-card:hover {
-            border-color: var(--accent-blue);
-            transform: translateY(-2px);
-        }
-        
-        .setup-card.bullish { border-left: 4px solid var(--accent-green); }
-        .setup-card.bearish { border-left: 4px solid var(--accent-red); }
-        .setup-card.neutral { border-left: 4px solid var(--accent-yellow); }
-        
-        .setup-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 16px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .setup-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
-        
-        .setup-type {
-            font-size: 0.75rem;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-weight: 500;
-            text-transform: uppercase;
-        }
-        
-        .setup-type.bullish { background: var(--success-bg); color: var(--accent-green); }
-        .setup-type.bearish { background: var(--danger-bg); color: var(--accent-red); }
-        .setup-type.neutral { background: var(--warning-bg); color: var(--accent-yellow); }
-        
-        .win-rate {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--accent-green);
-            margin-top: 4px;
-        }
-        
-        .setup-params {
-            margin-bottom: 16px;
-        }
-        
-        .param-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 6px 0;
-            font-size: 0.9rem;
-            border-bottom: 1px dashed var(--border-color);
-        }
-        
-        .param-row:last-child { border-bottom: none; }
-        
-        .param-label { color: var(--text-secondary); }
-        .param-value { font-weight: 500; }
-        .param-value.up { color: var(--accent-green); }
-        .param-value.down { color: var(--accent-red); }
-        .param-value.neutral { color: var(--accent-yellow); }
-        
-        .checklist {
-            margin: 16px 0;
-        }
-        
-        .checklist-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            padding: 8px 0;
-            font-size: 0.9rem;
-        }
-        
-        .checklist-item input[type="checkbox"] {
-            margin-top: 3px;
-            width: 16px;
-            height: 16px;
-            accent-color: var(--accent-green);
-            cursor: pointer;
-        }
-        
-        .progress-bar {
-            height: 6px;
-            background: var(--bg-secondary);
-            border-radius: 3px;
-            margin: 12px 0;
-            overflow: hidden;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            background: var(--accent-green);
-            border-radius: 3px;
-            transition: width 0.3s;
-        }
-        
-        .execution-box {
-            background: var(--bg-secondary);
-            padding: 12px;
-            border-radius: 8px;
-            margin: 12px 0;
-            font-size: 0.9rem;
-        }
-        
-        .execution-box strong { color: var(--accent-blue); }
-        
-        .invalidation-box {
-            background: var(--danger-bg);
-            border: 1px solid var(--accent-red);
-            padding: 12px;
-            border-radius: 8px;
-            margin: 12px 0;
-            font-size: 0.85rem;
-            color: #fecaca;
-        }
-        
-        .timeframe-badge {
-            display: inline-block;
-            padding: 4px 10px;
-            background: var(--bg-secondary);
-            border-radius: 6px;
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            margin-top: 8px;
-        }
-        
-        /* Inverse Box */
-        .inverse-box {
-            background: var(--warning-bg);
-            border: 1px solid var(--accent-yellow);
-            padding: 12px;
-            border-radius: 8px;
-            margin: 12px 0;
-            font-size: 0.85rem;
-            color: #fef3c7;
-            display: none;
-        }
-        
-        .inverse-box.show { display: block; }
-        
-        /* Legend Section */
-        .legend-section {
-            background: var(--bg-card);
-            border-radius: 16px;
-            padding: 20px;
-            border: 1px solid var(--border-color);
-            margin-top: 20px;
-        }
-        
-        .legend-section h3 {
-            margin-bottom: 16px;
-            color: var(--accent-blue);
-            font-size: 1.1rem;
-        }
-        
-        .legend-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-        }
-        
-        .legend-table {
-            width: 100%;
-            font-size: 0.9rem;
-        }
-        
-        .legend-table th {
-            text-align: left;
-            padding: 8px;
-            color: var(--text-secondary);
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .legend-table td {
-            padding: 8px;
-            border-bottom: 1px dashed var(--border-color);
-        }
-        
-        .legend-inverse {
-            font-size: 0.85rem;
-            line-height: 1.7;
-        }
-        
-        .legend-inverse code {
-            background: var(--bg-secondary);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-family: monospace;
-            color: var(--accent-green);
-        }
-        
-        /* Responsive */
-        @media (max-width: 768px) {
-            .nav-bar { flex-direction: column; gap: 12px; }
-            .symbol-bar { flex-direction: column; align-items: flex-start; }
-            .filter-bar { justify-content: flex-start; }
-            .setup-grid { grid-template-columns: 1fr; }
-            header h1 { font-size: 1.5rem; }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; background:linear-gradient(135deg,#0a0a1a,#12122b); color:#e0e0e0; padding:20px; line-height:1.6; }
+        .container { max-width:1500px; margin:0 auto; }
+        header { text-align:center; padding:30px 20px; background:linear-gradient(135deg,#1e1a4b,#2d2a5e); border-radius:20px; margin-bottom:25px; border:1px solid rgba(139,92,246,0.3); }
+        h1 { font-size:2.2em; background:linear-gradient(135deg,#c084fc,#60a5fa); -webkit-background-clip:text; background-clip:text; color:transparent; }
+        .subtitle { color:#94a3b8; margin-top:8px; }
+
+        /* ── Symbol bar ── */
+        .symbol-bar { background:#0f172a; border-radius:40px; padding:12px 25px; margin-bottom:25px; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:15px; border:1px solid #334155; }
+        .symbol-selector { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+        .symbol-selector label { font-weight:bold; color:#a5b4fc; }
+        select { background:#1e293b; border:1px solid #5b6e8c; padding:10px 20px; border-radius:40px; color:white; font-weight:bold; cursor:pointer; font-size:1rem; }
+        .contract-info { background:#2d3748; padding:8px 16px; border-radius:16px; font-size:0.8rem; color:#cbd5e6; max-width:620px; line-height:1.7; }
+
+        /* ── Filter bar ── */
+        .filter-section { display:flex; gap:12px; margin-bottom:30px; flex-wrap:wrap; padding:15px 20px; background:rgba(15,23,42,0.6); border-radius:20px; align-items:center; }
+        .filter-btn { padding:8px 20px; border:1px solid #5b6e8c; background:transparent; color:#cbd5e1; border-radius:40px; cursor:pointer; transition:0.2s; }
+        .filter-btn.active, .filter-btn:hover { background:#5b21b6; border-color:#a78bfa; color:white; }
+        .export-btn { background:#2dd4bf20; border:1px solid #2dd4bf; color:#99f6e4; padding:8px 18px; border-radius:40px; cursor:pointer; font-weight:bold; margin-left:auto; transition:0.2s; }
+        .export-btn:hover { background:#2dd4bf40; }
+        .nav-link { display:inline-flex; align-items:center; gap:7px; background:rgba(139,92,246,0.15); border:1px solid rgba(139,92,246,0.4); color:#c084fc; padding:8px 18px; border-radius:40px; text-decoration:none; font-size:0.85rem; font-weight:600; transition:0.2s; }
+        .nav-link:hover { background:rgba(139,92,246,0.3); border-color:#a78bfa; color:white; }
+        .nav-bar { display:flex; justify-content:center; gap:12px; margin-bottom:20px; flex-wrap:wrap; }
+
+        /* ── Grid & cards ── */
+        .setup-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(480px,1fr)); gap:25px; margin-bottom:30px; }
+        .setup-card { background:rgba(17,24,39,0.85); backdrop-filter:blur(2px); border-radius:24px; padding:20px; border:1px solid #334155; transition:0.2s; }
+        .setup-card:hover { border-color:#7c3aed; transform:translateY(-3px); }
+        .setup-header { display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:15px; }
+        .setup-title { font-size:1.3rem; font-weight:700; color:#c4b5fd; }
+        .badge-row { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+        .setup-type { padding:4px 12px; border-radius:30px; font-size:0.7rem; font-weight:bold; }
+        .type-bullish { background:#16653440; border:1px solid #22c55e; color:#4ade80; }
+        .type-bearish { background:#7f1d1d40; border:1px solid #ef4444; color:#f87171; }
+        .type-neutral { background:#854d0e40; border:1px solid #facc15; color:#fde047; }
+        .badge-exit { background:#1e3a5f40; border:1px solid #38bdf8; color:#7dd3fc; padding:4px 10px; border-radius:30px; font-size:0.65rem; font-weight:bold; }
+
+        /* ── Indicator rows ── */
+        .indicator-row { display:grid; grid-template-columns:85px 1fr; gap:10px; background:#0f172a; margin:8px 0; padding:8px 12px; border-radius:14px; font-size:0.85rem; }
+        .indicator-label { font-weight:bold; color:#818cf8; }
+
+        /* ── Checklist ── */
+        .checklist-area { background:#0f172a; border-radius:16px; padding:12px; margin:15px 0; }
+        .checklist-title { font-weight:bold; color:#a78bfa; margin-bottom:8px; font-size:0.8rem; }
+        .checklist-item { display:flex; gap:10px; margin-bottom:8px; font-size:0.8rem; align-items:flex-start; cursor:pointer; }
+        .checklist-item input[type="checkbox"] { margin-top:2px; flex-shrink:0; cursor:pointer; accent-color:#a78bfa; }
+        .checklist-item span { line-height:1.4; }
+
+        /* ── Progress bar ── */
+        .checklist-progress { margin-top:10px; }
+        .progress-bar-bg { height:5px; background:#1e293b; border-radius:4px; overflow:hidden; }
+        .progress-bar-fill { height:100%; background:linear-gradient(90deg,#7c3aed,#22c55e); border-radius:4px; transition:width 0.3s; }
+        .progress-label { font-size:0.7rem; color:#94a3b8; margin-top:4px; }
+
+        /* ── Risk / Inverse boxes ── */
+        .risk-box { background:#450a0a60; border-left:4px solid #ef4444; border-radius:12px; padding:10px; margin:12px 0; font-size:0.8rem; }
+        .inverse-box { background:#78350f30; border-left:4px solid #f59e0b; border-radius:12px; padding:10px; margin:12px 0; font-size:0.8rem; line-height:1.6; }
+
+        /* ── Probability & TF tags ── */
+        .probability { display:inline-block; background:#1e293b; padding:4px 15px; border-radius:30px; font-size:0.75rem; font-weight:bold; margin-top:10px; }
+        .timeframe-tags { display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 5px; }
+        .timeframe-tag { background:#2d3748; padding:3px 10px; border-radius:20px; font-size:0.7rem; }
+
+        /* ── Legend ── */
+        .legend { background:#0f172a; border-radius:20px; padding:20px; margin-top:25px; }
+        .legend h3 { margin-bottom:8px; }
+
+        @media (max-width:700px) {
+            .setup-grid { grid-template-columns:1fr; }
+            .indicator-row { grid-template-columns:1fr; gap:4px; }
         }
     </style>
 </head>
 <body>
-    <!-- 🔗 NAVIGATION BAR - LINK BOLAK-BALIK -->
-    <nav class="nav-bar">
-        <div class="nav-logo">📊 OI+CVD Futures Lab</div>
-        <div class="nav-links">
-            <a href="tutorial.html" class="nav-btn tutorial" title="Baca Panduan Lengkap">
-                📖 Tutorial
-            </a>
-        </div>
-    </nav>
-
+<div class="container">
+    <div class="nav-bar">
+        <a class="nav-link" href="https://tukulkacang.github.io/futures-oi-cvd-lab/">📊 App Utama</a>
+        <a class="nav-link" href="https://tukulkacang.github.io/futures-oi-cvd-lab/tutorial.html">📖 Panduan &amp; Tutorial</a>
+    </div>
     <header>
-        <h1>🎯 OI + CVD Trading Setup Parameters</h1>
-        <p>Kombinasi Open Interest & Cumulative Volume Delta untuk Trading Futures</p>
+        <h1>📊 OI + CVD Futures Lab</h1>
+        <p class="subtitle">Open Interest & Cumulative Volume Delta untuk Futures | Multi-Symbol Support</p>
     </header>
 
-    <!-- Symbol Selector -->
     <div class="symbol-bar">
-        <div class="symbol-select">
-            <label for="symbol">Instrumen:</label>
-            <select id="symbol" onchange="updateSymbol()">
-                <option value="6E1">6E1 - EUR/USD</option>
-                <option value="6B1">6B1 - GBP/USD</option>
-                <option value="6A1">6A1 - AUD/USD</option>
-                <option value="6N1">6N1 - NZD/USD</option>
-                <option value="6C1">6C1 - USD/CAD ⚠️</option>
-                <option value="6S1">6S1 - USD/CHF ⚠️</option>
-                <option value="6J1">6J1 - USD/JPY ⚠️</option>
-                <option value="GC1">GC1 - Gold</option>
-                <option value="SI1">SI1 - Silver</option>
-                <option value="CL1">CL1 - Crude Oil</option>
+        <div class="symbol-selector">
+            <label>🎯 Pilih Instrumen:</label>
+            <select id="symbolSelect">
+                <option value="6E1" selected>6E1! — EUR/USD (Euro)</option>
+                <option value="6B1">6B1! — GBP/USD (Pound)</option>
+                <option value="6A1">6A1! — AUD/USD (Aussie)</option>
+                <option value="6N1">6N1! — NZD/USD (Kiwi)</option>
+                <option value="6C1">6C1! — USD/CAD ⚠️ INVERSE</option>
+                <option value="6S1">6S1! — USD/CHF ⚠️ INVERSE</option>
+                <option value="6J1">6J1! — USD/JPY ⚠️ INVERSE</option>
+                <option value="GC1">GC1! — Gold</option>
+                <option value="SI1">SI1! — Silver</option>
+                <option value="CL1">CL1! — Crude Oil</option>
             </select>
         </div>
-        <div class="contract-info" id="contractInfo">
-            <span>📏 Tick: $12.50</span>
-            <span>📦 Size: 125,000</span>
-            <span>⚡ OI Spike: +5%</span>
-            <span>📊 CVD: ×1.5</span>
-            <span class="inverse-warning" id="inverseWarning" style="display:none">⚠️ INVERSE PAIR</span>
+        <div class="contract-info" id="contractInfo">🔄 Pilih simbol untuk detail kontrak</div>
+    </div>
+
+    <div class="filter-section">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="bullish">Bullish</button>
+        <button class="filter-btn" data-filter="bearish">Bearish</button>
+        <button class="filter-btn" data-filter="neutral">Reversal / Neutral</button>
+        <button class="filter-btn" data-filter="high-prob">High Prob (&gt;60%)</button>
+        <button class="export-btn" id="exportJournalBtn">📤 Export Journal (TXT)</button>
+    </div>
+
+    <div class="setup-grid" id="setupGrid"></div>
+
+    <div class="legend">
+        <h3 style="color:#a78bfa">📖 Parameter Dinamis per Simbol</h3>
+        <p style="margin-bottom:12px;">
+            ✅ <strong>OI ↑ + Price ↑</strong> = Long buildup (fresh longs masuk)<br>
+            ✅ <strong>OI ↑ + Price ↓</strong> = Short buildup (fresh shorts masuk)<br>
+            ⚡ Threshold OI spike, CVD multiplier, dan win rate disesuaikan otomatis per instrumen.
+        </p>
+
+        <h3 style="color:#f59e0b;">⚠️ PENTING: Pair Inverse (USD/JPY, USD/CAD, USD/CHF)</h3>
+        <div style="background:#78350f30; padding:15px; border-radius:12px; border-left:4px solid #f59e0b; margin-top:8px; font-size:0.9rem; line-height:1.8;">
+            <strong>Kontrak futures 6C1/6S1/6J1 sebenarnya adalah CAD/USD, CHF/USD, JPY/USD</strong> — bukan USD/CAD dll.<br>
+            Artinya <strong>price di chart naik = mata uang quote (CAD/CHF/JPY) menguat = USD melemah</strong>.<br><br>
+            📈 <strong>BULLISH setup</strong> (price naik) → CAD/CHF/JPY <strong>MENGUAT</strong> → USD/CAD, USD/CHF, USD/JPY <strong>TURUN</strong><br>
+            &nbsp;&nbsp;&nbsp;✅ Cocok jika mau: <strong>LONG CAD/CHF/JPY</strong> atau <strong>SHORT USD</strong><br><br>
+            📉 <strong>BEARISH setup</strong> (price turun) → CAD/CHF/JPY <strong>MELEMAH</strong> → USD/CAD, USD/CHF, USD/JPY <strong>NAIK</strong><br>
+            &nbsp;&nbsp;&nbsp;✅ Cocok jika mau: <strong>SHORT CAD/CHF/JPY</strong> atau <strong>LONG USD</strong><br><br>
+            <strong>Contoh:</strong> Mau LONG JPY? → Cari setup <strong>BULLISH</strong> di 6J1 (price naik = JPY menguat = USD/JPY turun).
         </div>
     </div>
+</div>
 
-    <!-- Filter Bar -->
-    <div class="filter-bar">
-        <button class="filter-btn active" onclick="filterSetups('all')">All Setups</button>
-        <button class="filter-btn" onclick="filterSetups('bullish')">Bullish</button>
-        <button class="filter-btn" onclick="filterSetups('bearish')">Bearish</button>
-        <button class="filter-btn" onclick="filterSetups('neutral')">Neutral/Reversal</button>
-        <button class="filter-btn high-prob" onclick="filterSetups('highprob')">High Prob (&gt;60%)</button>
-        <button class="export-btn" onclick="exportJournal()">📤 Export Journal (TXT)</button>
-    </div>
+<script>
+// ══════════════════════════════════════════════
+// CONTRACT PARAMS
+// ══════════════════════════════════════════════
+const contractParams = {
+    "6E1": { name:"EUR/USD", pair:"EUR/USD",   tickValue:12.50, contractSize:125000,   oiSpikePct:5,  cvdSpikeMult:1.5, winRateAdj:0,  tf:"15M-4H",    note:"Likuid tinggi, setup standar",                  inverseQuote:false },
+    "6B1": { name:"GBP/USD", pair:"GBP/USD",   tickValue:6.25,  contractSize:62500,    oiSpikePct:6,  cvdSpikeMult:1.6, winRateAdj:-2, tf:"15M-4H",    note:"Volatil, spread 1-2 tick",                      inverseQuote:false },
+    "6A1": { name:"AUD/USD", pair:"AUD/USD",   tickValue:10.00, contractSize:100000,   oiSpikePct:5,  cvdSpikeMult:1.4, winRateAdj:0,  tf:"30M-4H",    note:"Sensitif komoditas & risk sentiment",            inverseQuote:false },
+    "6N1": { name:"NZD/USD", pair:"NZD/USD",   tickValue:10.00, contractSize:100000,   oiSpikePct:4,  cvdSpikeMult:1.3, winRateAdj:-3, tf:"1H-4H",     note:"Likuiditas tipis, konfirmasi lebih ketat",       inverseQuote:false },
+    // ⚠️ INVERSE: kontrak ini sebenarnya CAD/USD, CHF/USD, JPY/USD
+    "6C1": { name:"USD/CAD", pair:"USD/CAD",   tickValue:10.00, contractSize:100000,   oiSpikePct:5,  cvdSpikeMult:1.5, winRateAdj:-1, tf:"30M-4H",    note:"Korelasi harga minyak ⚠️ INVERSE",               inverseQuote:true  },
+    "6S1": { name:"USD/CHF", pair:"USD/CHF",   tickValue:12.50, contractSize:125000,   oiSpikePct:4,  cvdSpikeMult:1.3, winRateAdj:-2, tf:"1H-4H",     note:"Safe haven pair ⚠️ INVERSE",                    inverseQuote:true  },
+    "6J1": { name:"USD/JPY", pair:"USD/JPY",   tickValue:12.50, contractSize:12500000, oiSpikePct:6,  cvdSpikeMult:1.7, winRateAdj:-1, tf:"1H-4H",     note:"Carry trade sensitive ⚠️ INVERSE",               inverseQuote:true  },
+    // Komoditas
+    "GC1": { name:"Gold",      pair:"XAU/USD", tickValue:10.00, contractSize:100,      oiSpikePct:7,  cvdSpikeMult:1.8, winRateAdj:2,  tf:"1H-Daily",  note:"Volume breakout perlu >150% avg",                inverseQuote:false },
+    "SI1": { name:"Silver",    pair:"XAG/USD", tickValue:5.00,  contractSize:5000,     oiSpikePct:8,  cvdSpikeMult:2.0, winRateAdj:-3, tf:"4H-Daily",  note:"CVD smoothing disarankan, likuiditas tipis",     inverseQuote:false },
+    "CL1": { name:"Crude Oil", pair:"CL/USD",  tickValue:10.00, contractSize:1000,     oiSpikePct:12, cvdSpikeMult:2.2, winRateAdj:0,  tf:"15M-1H",    note:"OI spike >20% saat laporan EIA/API",             inverseQuote:false }
+};
 
-    <!-- Setup Grid -->
-    <div class="setup-grid" id="setupGrid">
-        <!-- Setup cards will be generated by JavaScript -->
-    </div>
+// ── Inverse details (dari File_4, lebih akurat secara fundamental) ──
+// Kontrak futures ini sebenarnya quoted sebagai BASE/USD, bukan USD/BASE
+// baseAsli = mata uang yang sebenarnya jadi base di kontrak futures
+// pairForex = pasangan forex retail yang umum dilihat trader
+const inverseDetails = {
+    "6C1": { baseAsli:"CAD", pairForex:"USD/CAD",
+             descNaik:"CAD menguat → USD melemah → USD/CAD TURUN",
+             descTurun:"CAD melemah → USD menguat → USD/CAD NAIK" },
+    "6S1": { baseAsli:"CHF", pairForex:"USD/CHF",
+             descNaik:"CHF menguat → USD melemah → USD/CHF TURUN",
+             descTurun:"CHF melemah → USD menguat → USD/CHF NAIK" },
+    "6J1": { baseAsli:"JPY", pairForex:"USD/JPY",
+             descNaik:"JPY menguat → USD melemah → USD/JPY TURUN",
+             descTurun:"JPY melemah → USD menguat → USD/JPY NAIK" }
+};
 
-    <!-- Legend Section -->
-    <div class="legend-section">
-        <h3>📖 Panduan Symbol & Notasi</h3>
-        <div class="legend-grid">
-            <div>
-                <table class="legend-table">
-                    <tr><th>Symbol</th><th>Arti</th></tr>
-                    <tr><td>↑</td><td>Naik / Bullish</td></tr>
-                    <tr><td>↓</td><td>Turun / Bearish</td></tr>
-                    <tr><td>→</td><td>Sideways / Neutral</td></tr>
-                    <tr><td>↑↑</td><td>Naik Tajam / Strong</td></tr>
-                    <tr><td>↓↓</td><td>Turun Tajam / Crash</td></tr>
-                    <tr><td>R:R</td><td>Risk to Reward Ratio</td></tr>
-                </table>
-            </div>
-            <div class="legend-inverse">
-                <strong>⚠️ Cara Baca Pair Inverse (6C1/6S1/6J1):</strong><br>
-                <code>Price NAIK</code> = Non-USD menguat (JPY/CAD/CHF)<br>
-                <code>Price TURUN</code> = Non-USD melemah<br><br>
-                <strong>Bullish Setup di 6J1:</strong><br>
-                → Cocok untuk: LONG JPY / SHORT USD<br>
-                → Bukan untuk: LONG USD/JPY (forex spot)<br><br>
-                <strong>Bearish Setup di 6J1:</strong><br>
-                → Cocok untuk: SHORT JPY / LONG USD<br>
-                → Bukan untuk: SHORT USD/JPY (forex spot)
-            </div>
-        </div>
-    </div>
+// ══════════════════════════════════════════════
+// BASE SETUPS
+// Placeholder: {oiSpike} {oiROC} {cvdMult} {oiCover} {oiExhaust}
+// ══════════════════════════════════════════════
+const baseSetups = [
+    {
+        id:1, title:"Strong Bullish Trend", type:"bullish", prob:"high", isExitSignal:false,
+        oiDesc:"OI naik konsisten (fresh longs masuk)",
+        cvdDesc:"CVD slope positif kuat & sustained",
+        priceDesc:"Higher highs, higher lows",
+        conds:[
+            "OI naik minimal 3 bar berturut-turut (ROC >{oiROC}% per bar)",
+            "CVD breakout di atas resistance sebelumnya (min {cvdMult}x rata-rata volume)",
+            "Price pullback ke EMA, CVD tetap di atas support CVD sebelumnya",
+            "Tidak ada bearish divergence antara CVD dan price"
+        ],
+        entry:"Entry setelah pullback ke EMA + CVD mulai naik lagi (konfirmasi buyer kembali)",
+        sl:"Di bawah swing low terdekat + buffer 0.3%",
+        target:"R:R minimum 1:2, target resistance berikutnya",
+        riskInv:"Invalid jika OI turun >10% mendadak (long liquidation) atau muncul CVD bearish divergence",
+        baseWR:72
+    },
+    {
+        id:2, title:"Strong Bearish Trend", type:"bearish", prob:"high", isExitSignal:false,
+        oiDesc:"OI naik saat price turun (fresh shorts, bukan sekadar long liquidation)",
+        cvdDesc:"CVD turun tajam, slope negatif kuat",
+        priceDesc:"Lower lows, lower highs",
+        conds:[
+            "OI naik saat price turun = conviction short buildup (minimal +{oiSpike}%)",
+            "CVD breakdown support + volume spike ({cvdMult}x rata-rata)",
+            "Dead cat bounce ke resistance gagal, CVD tetap turun / flat",
+            "Volume spike konfirmasi pada breakdown awal"
+        ],
+        entry:"Entry saat rally/bounce gagal + CVD kembali confirm turun",
+        sl:"Di atas swing high terdekat",
+        target:"Support berikutnya / R:R 1:2.5",
+        riskInv:"Exit jika muncul CVD bullish divergence atau OI drop tajam (short covering massal)",
+        baseWR:68
+    },
+    {
+        id:3, title:"Bullish Divergence Reversal", type:"neutral", prob:"high", isExitSignal:false,
+        oiDesc:"OI stabil atau mulai naik pelan (akumulasi diam-diam)",
+        cvdDesc:"CVD higher low saat price lower low (divergence positif)",
+        priceDesc:"Price lower low yang sudah exhausted (volume menurun)",
+        conds:[
+            "Price lower low TAPI CVD higher low = divergence bullish yang valid",
+            "OI mulai naik dari level rendah (min +{oiROC}% dalam 5 bar terakhir)",
+            "Price action konfirmasi: hammer, bullish engulfing, atau pin bar",
+            "Area support kuat terbukti valid (multi-test hold)"
+        ],
+        entry:"Entry setelah candle bullish konfirmasi + CVD mulai naik dari divergence area",
+        sl:"Di bawah recent low dengan sedikit buffer (SL ketat karena reversal entry)",
+        target:"R:R 1:3, partial close di 1:2",
+        riskInv:"False divergence jika price break support baru dengan CVD yang ikut turun",
+        baseWR:60
+    },
+    {
+        id:4, title:"Bearish Divergence Reversal", type:"neutral", prob:"high", isExitSignal:false,
+        oiDesc:"OI mulai turun (long profit taking atau long liquidation)",
+        cvdDesc:"CVD lower high saat price higher high (divergence negatif)",
+        priceDesc:"Price higher high yang sudah melemah (volume berkurang)",
+        conds:[
+            "Price higher high TAPI CVD lower high = divergence bearish yang valid",
+            "OI menurun saat price rally (-{oiROC}% dalam 3 bar terakhir = longs keluar)",
+            "Resistance kuat terbukti valid di area divergence",
+            "Volume menurun konsisten saat price naik (no conviction)"
+        ],
+        entry:"Entry setelah rejection candle di resistance + CVD drop konfirmasi",
+        sl:"Di atas recent high",
+        target:"Support terdekat / level Fibonacci, R:R minimal 1:2",
+        riskInv:"Gagal jika price breakout resistance dengan OI+CVD sama-sama naik (breakout valid)",
+        baseWR:62
+    },
+    {
+        id:5, title:"Valid Breakout Long", type:"bullish", prob:"high", isExitSignal:false,
+        oiDesc:"OI spike tajam = fresh longs agresif masuk, BUKAN sekadar short covering",
+        cvdDesc:"CVD spike vertikal ke atas = aggressive buying pressure",
+        priceDesc:"Price break resistance dengan candle kuat (body >50% dari range bar)",
+        conds:[
+            "Price break resistance dengan full-body bullish candle (body >50% dari high-low)",
+            "OI spike minimal +{oiSpike}% dalam 1-2 bar = fresh longs (bukan short covering)",
+            "CVD vertical move ke atas ({cvdMult}x rata-rata CVD biasa) = buyers agresif",
+            "Volume breakout >150% dari average volume 20-bar terakhir"
+        ],
+        entry:"Entry di retest resistance → jadi support, konfirmasi CVD hold di atas breakout level",
+        sl:"Di bawah breakout level (low candle breakout)",
+        target:"Measured move (tinggi pattern × 1) atau next resistance",
+        riskInv:"False breakout jika OI turun setelah breakout (hanya short covering, bukan fresh longs)",
+        baseWR:70
+    },
+    {
+        id:6, title:"Valid Breakdown Short", type:"bearish", prob:"high", isExitSignal:false,
+        oiDesc:"OI spike = fresh shorts agresif masuk, bukan hanya long liquidation",
+        cvdDesc:"CVD waterfall / crash ke bawah = aggressive selling",
+        priceDesc:"Price break support dengan bearish candle kuat",
+        conds:[
+            "Price break support dengan full-body bearish candle",
+            "OI spike minimal +{oiSpike}% = fresh shorts masuk (konfirmasi conviction)",
+            "CVD waterfall down, {cvdMult}x volume selling rata-rata",
+            "Tidak ada buying absorption (tidak ada long wick besar di area bawah)"
+        ],
+        entry:"Entry di rally kecil / pullback ke broken support (previous support jadi resistance)",
+        sl:"Di atas breakdown level / broken support",
+        target:"Next support level",
+        riskInv:"Bear trap jika CVD cepat recover dan OI drop (short covering massif = reversal)",
+        baseWR:68
+    },
+    {
+        id:7, title:"Accumulation Phase (Long Setup)", type:"bullish", prob:"medium", isExitSignal:false,
+        oiDesc:"OI naik gradual selama konsolidasi = smart money akumulasi diam-diam",
+        cvdDesc:"CVD trending up secara konsisten meski price sideways",
+        priceDesc:"Price ranging / sideways dengan support yang tahan",
+        conds:[
+            "CVD naik konsisten MESKI price sideways / ranging (hidden accumulation)",
+            "OI naik {oiSpike}% selama konsolidasi berlangsung (minimal 5-10 periode)",
+            "Support area teruji beberapa kali dan hold (multi-test support)",
+            "Candle lower lows semakin kecil (selling pressure berkurang)"
+        ],
+        entry:"Entry di support zone ketika CVD kembali spike kecil ke atas",
+        sl:"Di bawah range low (below accumulation zone)",
+        target:"Range high (TP1), lalu anticipasi breakout",
+        riskInv:"Bukan akumulasi jika CVD mulai turun = distribusi, batalkan long",
+        baseWR:54
+    },
+    {
+        id:8, title:"Distribution Phase (Short Setup)", type:"bearish", prob:"medium", isExitSignal:false,
+        oiDesc:"OI naik (short buildup) saat price ranging = smart money distribusi / short",
+        cvdDesc:"CVD turun gradual meski price sideways (hidden selling)",
+        priceDesc:"Price ranging dengan rejection konsisten di resistance",
+        conds:[
+            "CVD turun konsisten MESKI price sideways (hidden distribution / selling)",
+            "OI naik {oiSpike}% tapi price gagal breakout resistance berulang kali",
+            "Resistance multi-test rejection (setidaknya 2-3 kali ditolak)",
+            "Higher highs semakin lemah (each rally lebih kecil)"
+        ],
+        entry:"Entry di rejection candle resistance + CVD drop konfirmasi",
+        sl:"Di atas range high",
+        target:"Range low (TP1), breakdown extension (TP2)",
+        riskInv:"Gagal jika price breakout range top dengan OI+CVD bullish = bukan distribusi",
+        baseWR:52
+    },
+    {
+        id:9, title:"Weak Rally / Short Covering", type:"bearish", prob:"low", isExitSignal:false,
+        oiDesc:"OI TURUN saat price naik = short covering, bukan real buying",
+        cvdDesc:"CVD flat atau turun saat price naik = tidak ada buyer baru",
+        priceDesc:"Price rally tanpa conviction (volume menurun saat naik)",
+        conds:[
+            "Price naik TAPI OI turun ({oiCover}% drop) = short covering, bukan fresh longs",
+            "CVD tidak mengikuti price naik (CVD flat atau bahkan turun = divergence)",
+            "Rally menuju resistance / Fibonacci retracement level",
+            "Volume menurun konsisten selama rally berlangsung"
+        ],
+        entry:"Entry short di resistance dengan rejection konfirmasi (⚠️ SETUP BERISIKO TINGGI)",
+        sl:"Ketat di atas resistance +0.5% (risiko squeeze besar jika salah)",
+        target:"Swing low terdekat, R:R minimal 1:2",
+        riskInv:"⚠️ BAHAYA: Jika OI & CVD tiba-tiba naik bersamaan = real buyers masuk, WAJIB CUT LOSS segera!",
+        baseWR:48
+    },
+    {
+        id:10, title:"Trend Exhaustion (Exit / Reduce Signal)", type:"neutral", prob:"high", isExitSignal:true,
+        oiDesc:"OI drop drastis = long liquidation massal (longs keluar)",
+        cvdDesc:"CVD flat atau divergence bearish (demand menurun)",
+        priceDesc:"Price momentum melambat, range candle mengecil",
+        conds:[
+            "Trend masih intact tapi OI turun >{oiExhaust}% dari puncak = longs mulai exit massal",
+            "CVD divergence: price masih naik tapi CVD flat/turun = buyers habis",
+            "Volatilitas menurun, ukuran candle mengecil (low conviction)",
+            "Volume spike tanpa follow-through (distribusi di puncak)"
+        ],
+        entry:"❌ JANGAN MASUK POSISI BARU — Ini sinyal keluar, bukan entry",
+        sl:"Perketat trailing stop untuk posisi yang sudah ada",
+        target:"Close 50-75% posisi, tunggu koreksi sebelum re-entry",
+        riskInv:"Jika OI & CVD re-accelerate kembali = trend lanjut, bisa re-entry setelah konfirmasi",
+        baseWR:78
+    }
+];
 
-    <script>
-        // Setup data - semua 10 setup
-        const setups = [
-            {
-                id: 1,
-                name: "Strong Bullish Trend",
-                type: "bullish",
-                winRate: 72,
-                params: { OI: "↑ Naik konsisten (min +5%)", CVD: "↑↑ Naik tajam slope positif", Price: "↑ Higher highs & higher lows" },
-                entry: [
-                    "OI naik minimal 2-3 bar berturut-turut",
-                    "CVD breakout dari resistance sebelumnya",
-                    "Price pullback ke EMA/support dengan volume rendah",
-                    "CVD tetap di atas level support saat pullback"
-                ],
-                execution: "Entry: Setelah pullback, saat CVD mulai naik lagi | SL: Di bawah swing low + buffer 0.3-0.5% | Target: R:R minimal 1:2",
-                invalidation: "Setup invalid jika: OI tiba-tiba drop >10% atau CVD divergence bearish muncul",
-                timeframe: "15M-1H | 4H-Daily",
-                highProb: true
-            },
-            {
-                id: 2,
-                name: "Strong Bearish Trend",
-                type: "bearish",
-                winRate: 68,
-                params: { OI: "↑ Naik (posisi short baru)", CVD: "↓↓ Turun tajam slope negatif", Price: "↓ Lower lows & lower highs" },
-                entry: [
-                    "OI naik saat price turun (conviction short)",
-                    "CVD breakdown dari support dengan volume tinggi",
-                    "Dead cat bounce ke resistance dengan CVD tetap turun",
-                    "Volume spike saat breakdown awal"
-                ],
-                execution: "Entry: Saat rally gagal, CVD confirm turun | SL: Di atas swing high + buffer | Target: Support berikutnya atau R:R 1:2.5",
-                invalidation: "Exit jika: CVD bullish divergence atau OI drop tajam (short covering massal)",
-                timeframe: "15M-1H | 4H-Daily",
-                highProb: true
-            },
-            {
-                id: 3,
-                name: "Bullish Divergence",
-                type: "neutral",
-                winRate: 60,
-                params: { OI: "→ Stabil atau mulai naik pelan", CVD: "↑ Higher low (divergence)", Price: "↓ Lower low (seller exhausted)" },
-                entry: [
-                    "Price buat lower low, CVD buat higher low",
-                    "OI mulai naik dari level rendah sebelumnya",
-                    "Price action: bullish candle pattern (hammer, engulfing)",
-                    "Support level kuat di area divergence"
-                ],
-                execution: "Entry: Setelah konfirmasi candle bullish + CVD confirm naik | SL: Di bawah recent low (1-1.5%) | Target: R:R min 1:3",
-                invalidation: "False divergence jika price break support dengan CVD ikut turun tajam",
-                timeframe: "1H-4H | Daily",
-                highProb: true
-            },
-            {
-                id: 4,
-                name: "Bearish Divergence",
-                type: "neutral",
-                winRate: 62,
-                params: { OI: "↓ Mulai turun (buyer exhausted)", CVD: "↓ Lower high (divergence)", Price: "↑ Higher high (tanpa volume)" },
-                entry: [
-                    "Price buat higher high, CVD buat lower high",
-                    "OI decline saat price rally (no conviction)",
-                    "Resistance kuat di area divergence",
-                    "Volume menurun saat price naik (distribusi)"
-                ],
-                execution: "Entry: Setelah rejection candle + CVD drop | SL: Di atas recent high + buffer | Target: Support terdekat",
-                invalidation: "Setup gagal jika breakout resistance dengan OI dan CVD ikut naik kuat",
-                timeframe: "1H-4H | Daily",
-                highProb: true
-            },
-            {
-                id: 5,
-                name: "Valid Breakout (Long)",
-                type: "bullish",
-                winRate: 70,
-                params: { OI: "↑↑ Spike tajam saat breakout", CVD: "↑↑ Spike agresif (buyer dominan)", Price: "↑ Break resistance volume tinggi" },
-                entry: [
-                    "Price break resistance dengan candle kuat (>50% range)",
-                    "OI spike minimal +10-15% dalam 1-2 bar",
-                    "CVD vertical move up (aggressive buying)",
-                    "Volume breakout >150% average volume"
-                ],
-                execution: "Entry: Pada retest resistance + CVD hold | SL: Di bawah breakout level | Target: Measured move",
-                invalidation: "False breakout jika: OI turun saat breakout (hanya short covering) atau CVD flat/down",
-                timeframe: "5M-15M | 1H-4H",
-                highProb: true
-            },
-            {
-                id: 6,
-                name: "Valid Breakdown (Short)",
-                type: "bearish",
-                winRate: 68,
-                params: { OI: "↑↑ Spike saat breakdown", CVD: "↓↓ Crash down (aggressive selling)", Price: "↓ Break support dengan momentum" },
-                entry: [
-                    "Price break support dengan bearish candle",
-                    "OI naik +10-15% (fresh short positions)",
-                    "CVD waterfall down",
-                    "No buying absorption (CVD tidak recover)"
-                ],
-                execution: "Entry: Rally kecil ke broken support | SL: Di atas breakdown level + wick | Target: Next support",
-                invalidation: "Bear trap jika: CVD quickly recover atau OI drop (panic covering)",
-                timeframe: "5M-15M | 1H-4H",
-                highProb: true
-            },
-            {
-                id: 7,
-                name: "Accumulation Phase",
-                type: "bullish",
-                winRate: 54,
-                params: { OI: "↑ Naik gradual dalam range", CVD: "↑ Trending up meski price sideways", Price: "→ Ranging/konsolidasi" },
-                entry: [
-                    "Price sideways tapi CVD naik konsisten (absorpsi)",
-                    "OI naik 5-10% selama konsolidasi",
-                    "Lower lows semakin kecil (compression)",
-                    "Support level teruji beberapa kali & hold"
-                ],
-                execution: "Entry: Di support zone saat CVD spike kecil | SL: Di bawah range low | Target: Range high",
-                invalidation: "Distribution jika: CVD mulai turun atau breakdown dari range dengan volume",
-                timeframe: "4H-Daily | Weekly",
-                highProb: false
-            },
-            {
-                id: 8,
-                name: "Distribution Phase",
-                type: "bearish",
-                winRate: 52,
-                params: { OI: "↑ Naik (short buildup) dalam range", CVD: "↓ Turun gradual meski price sideways", Price: "→ Range-bound rejection di top" },
-                entry: [
-                    "Price sideways tapi CVD turun konsisten",
-                    "OI naik tapi price gagal breakout (sellers waiting)",
-                    "Resistance teruji multiple times & rejected",
-                    "Higher highs semakin lemah (losing momentum)"
-                ],
-                execution: "Entry: Di resistance saat rejection + CVD drop | SL: Di atas range high | Target: Range low",
-                invalidation: "Setup gagal jika breakout dari range top dengan OI dan CVD spike bullish",
-                timeframe: "4H-Daily | Weekly",
-                highProb: false
-            },
-            {
-                id: 9,
-                name: "Weak Rally / Short Covering",
-                type: "bearish",
-                winRate: 48,
-                params: { OI: "↓ Turun saat price naik (covering)", CVD: "→ Flat atau turun (no real buying)", Price: "↑ Rally tapi tanpa conviction" },
-                entry: [
-                    "Price naik tapi OI turun (shorts closing, bukan longs opening)",
-                    "CVD tidak mengikuti price (divergence)",
-                    "Rally ke resistance atau Fibonacci level",
-                    "Volume menurun saat rally (exhaustion)"
-                ],
-                execution: "Entry: Di resistance saat rejection muncul | SL: Ketat, di atas resistance + 0.5% | Warning: High risk!",
-                invalidation: "⚠️ BAHAYA jika OI dan CVD tiba-tiba naik - artinya real buyers masuk, cut loss!",
-                timeframe: "5M-1H | Scalping",
-                highProb: false
-            },
-            {
-                id: 10,
-                name: "Trend Exhaustion",
-                type: "neutral",
-                winRate: 78,
-                isExit: true,
-                params: { OI: "↓↓ Drop drastis (posisi ditutup massal)", CVD: "→ Flat/divergence dari price", Price: "↑/↓ Masih trending tapi melambat" },
-                entry: [
-                    "Trend masih intact tapi OI turun >15-20%",
-                    "CVD divergence (price naik, CVD flat/turun)",
-                    "Volatility menurun, range mengecil",
-                    "Volume spike tapi price tidak follow through"
-                ],
-                execution: "✅ ACTION: Close 50-75% profit positions | Perketat trailing stop | Hindari FOMO entry | Tunggu koreksi",
-                invalidation: "Jika OI dan CVD re-accelerate dengan price, trend bisa continue - re-evaluate",
-                timeframe: "All Timeframes",
-                highProb: true
-            }
-        ];
+let currentSymbol = "6E1";
+let currentFilter = "all";
 
-        // Symbol parameters
-        const symbolParams = {
-            "6E1": { pair: "EUR/USD", oiSpike: "+5%", cvdMult: "×1.5", tf: "15M–4H", inverse: false, wrAdjust: 0 },
-            "6B1": { pair: "GBP/USD", oiSpike: "+6%", cvdMult: "×1.6", tf: "15M–4H", inverse: false, wrAdjust: 0 },
-            "6A1": { pair: "AUD/USD", oiSpike: "+5%", cvdMult: "×1.4", tf: "30M–4H", inverse: false, wrAdjust: 0 },
-            "6N1": { pair: "NZD/USD", oiSpike: "+4%", cvdMult: "×1.3", tf: "1H–4H", inverse: false, wrAdjust: -3 },
-            "6C1": { pair: "USD/CAD", oiSpike: "+5%", cvdMult: "×1.5", tf: "30M–4H", inverse: true, wrAdjust: 0 },
-            "6S1": { pair: "USD/CHF", oiSpike: "+4%", cvdMult: "×1.3", tf: "1H–4H", inverse: true, wrAdjust: 0 },
-            "6J1": { pair: "USD/JPY", oiSpike: "+6%", cvdMult: "×1.7", tf: "1H–4H", inverse: true, wrAdjust: 0 },
-            "GC1": { pair: "Gold", oiSpike: "+7%", cvdMult: "×1.8", tf: "1H–Daily", inverse: false, wrAdjust: +2 },
-            "SI1": { pair: "Silver", oiSpike: "+8%", cvdMult: "×2.0", tf: "4H–Daily", inverse: false, wrAdjust: -2 },
-            "CL1": { pair: "Crude Oil", oiSpike: "+12%", cvdMult: "×2.2", tf: "15M–1H", inverse: false, wrAdjust: +1 }
-        };
+// ══════════════════════════════════════════════
+// DYNAMIC PARAMS
+// ══════════════════════════════════════════════
+function getParams(symbol) {
+    const p = contractParams[symbol] || contractParams["6E1"];
+    return {
+        oiSpike:    p.oiSpikePct,
+        oiROC:      Math.round(p.oiSpikePct * 0.7),   // ROC per bar ~70% dari total spike threshold
+        cvdMult:    p.cvdSpikeMult,
+        oiCover:    p.oiSpikePct,                      // threshold OI drop = short covering
+        oiExhaust:  p.oiSpikePct + 5,                  // threshold OI drop dari puncak = exhaustion
+        winRateAdj: p.winRateAdj,
+        tf:         p.tf,
+        note:       p.note
+    };
+}
 
-        let currentSymbol = "6E1";
-        let currentFilter = "all";
+// ══════════════════════════════════════════════
+// INVERSE BOX — dari File_4, diperluas untuk neutral
+// Menggunakan inverseDetails yang akurat secara fundamental
+// ══════════════════════════════════════════════
+function buildInverseBox(setupType, symbol) {
+    const det = inverseDetails[symbol];
+    if (!det) return '';
 
-        // Initialize
-        document.addEventListener("DOMContentLoaded", () => {
-            renderSetups();
-            updateSymbol();
-            loadChecklistState();
+    const { baseAsli, pairForex, descNaik, descTurun } = det;
+    let isi = '';
+
+    if (setupType === 'bullish') {
+        isi = `<strong>🔄 INVERSE PAIR — Setup BULLISH ini artinya:</strong><br>
+        Price NAIK di kontrak → <strong>${descNaik}</strong><br>
+        ✅ Cocok untuk: <strong>LONG ${baseAsli}</strong> / SHORT USD<br>
+        ❌ Mau LONG USD / SHORT ${baseAsli}? → Tunggu setup <strong>BEARISH</strong>`;
+    } else if (setupType === 'bearish') {
+        isi = `<strong>🔄 INVERSE PAIR — Setup BEARISH ini artinya:</strong><br>
+        Price TURUN di kontrak → <strong>${descTurun}</strong><br>
+        ✅ Cocok untuk: <strong>SHORT ${baseAsli}</strong> / LONG USD<br>
+        ❌ Mau SHORT USD / LONG ${baseAsli}? → Tunggu setup <strong>BULLISH</strong>`;
+    } else {
+        // neutral / reversal
+        isi = `<strong>🔄 INVERSE PAIR — Setup REVERSAL ini:</strong><br>
+        Jika reversal ke atas → ${descNaik}<br>
+        Jika reversal ke bawah → ${descTurun}<br>
+        Sesuaikan arah posisi dengan mata uang yang ingin kamu trade di <strong>${pairForex}</strong>.`;
+    }
+
+    return `<div class="inverse-box">${isi}</div>`;
+}
+
+// ══════════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════════
+function renderSetups() {
+    const container = document.getElementById('setupGrid');
+    if (!container) return;
+    const params = getParams(currentSymbol);
+    const c = contractParams[currentSymbol];
+
+    // Contract info bar
+    const contractInfoDiv = document.getElementById('contractInfo');
+    if (contractInfoDiv) {
+        let info = `💰 ${c.name} (${c.pair}) | Tick: $${c.tickValue.toFixed(2)} | Size: ${c.contractSize.toLocaleString()} | OI threshold: +${c.oiSpikePct}% | CVD mult: ×${c.cvdSpikeMult}`;
+        if (c.inverseQuote && inverseDetails[currentSymbol]) {
+            const det = inverseDetails[currentSymbol];
+            info += `<br><span style="color:#f59e0b; font-weight:bold;">⚠️ INVERSE: Kontrak ini sebenarnya ${det.baseAsli}/USD. Price NAIK = ${det.descNaik}. Price TURUN = ${det.descTurun}.</span>`;
+        }
+        contractInfoDiv.innerHTML = info;
+    }
+
+    container.innerHTML = '';
+
+    baseSetups.forEach(setup => {
+        // Win rate (capped 40–85%)
+        let winRate = Math.min(85, Math.max(40, setup.baseWR + params.winRateAdj));
+
+        // Placeholder replacement
+        const replacedConds = setup.conds.map(cond =>
+            cond.replace(/{oiSpike}/g, params.oiSpike)
+                .replace(/{oiROC}/g,   params.oiROC)
+                .replace(/{cvdMult}/g, params.cvdMult)
+                .replace(/{oiCover}/g, params.oiCover)
+                .replace(/{oiExhaust}/g, params.oiExhaust)
+        );
+
+        // Checklist HTML
+        let checklistHtml = `<div class="checklist-area">
+            <div class="checklist-title">✅ Entry Checklist — centang kondisi yang terpenuhi</div>`;
+        replacedConds.forEach((cond, idx) => {
+            checklistHtml += `<label class="checklist-item">
+                <input type="checkbox" data-cond-index="${idx}">
+                <span>${cond}</span>
+            </label>`;
         });
+        checklistHtml += `
+            <div class="checklist-progress">
+                <div class="progress-bar-bg"><div class="progress-bar-fill" id="pb-${setup.id}" style="width:0%"></div></div>
+                <div class="progress-label" id="pl-${setup.id}">0 / ${replacedConds.length} kondisi terpenuhi</div>
+            </div>
+        </div>`;
 
-        // Render setup cards
-        function renderSetups() {
-            const grid = document.getElementById("setupGrid");
-            grid.innerHTML = "";
-            
-            setups.forEach(setup => {
-                // Filter logic
-                if (currentFilter === "bullish" && setup.type !== "bullish") return;
-                if (currentFilter === "bearish" && setup.type !== "bearish") return;
-                if (currentFilter === "neutral" && setup.type !== "neutral") return;
-                if (currentFilter === "highprob" && !setup.highProb) return;
-                
-                // Adjust win rate per symbol
-                const params = symbolParams[currentSymbol];
-                const adjustedWR = Math.min(85, Math.max(40, setup.winRate + params.wrAdjust));
-                
-                const card = document.createElement("div");
-                card.className = `setup-card ${setup.type}`;
-                card.dataset.setupId = setup.id;
-                
-                // Inverse box content
-                const inverseContent = setup.type === "bullish" 
-                    ? `✅ Cocok untuk: <strong>LONG ${params.pair.split("/")[0]} / SHORT USD</strong><br>❌ Bukan untuk: LONG ${params.pair} (forex spot)`
-                    : setup.type === "bearish"
-                    ? `✅ Cocok untuk: <strong>SHORT ${params.pair.split("/")[0]} / LONG USD</strong><br>❌ Bukan untuk: SHORT ${params.pair} (forex spot)`
-                    : `⚠️ Pair inverse: Pastikan arah trading sesuai kontrak futures, bukan forex spot`;
-                
-                card.innerHTML = `
-                    <div class="setup-header">
-                        <div>
-                            <div class="setup-title">${setup.id}️⃣ ${setup.name}</div>
-                            <span class="setup-type ${setup.type}">${setup.isExit ? "EXIT SIGNAL" : setup.type.toUpperCase()}</span>
-                            <div class="win-rate">Win Rate: ~${adjustedWR}%${params.wrAdjust !== 0 ? ` <small style="color:var(--text-secondary)">(${setup.winRate}% base)</small>` : ""}</div>
-                        </div>
-                    </div>
-                    
-                    <div class="setup-params">
-                        <div class="param-row"><span class="param-label">📊 OI:</span><span class="param-value ${setup.params.OI.includes("↑") ? "up" : setup.params.OI.includes("↓") ? "down" : "neutral"}">${setup.params.OI}</span></div>
-                        <div class="param-row"><span class="param-label">📈 CVD:</span><span class="param-value ${setup.params.CVD.includes("↑") ? "up" : setup.params.CVD.includes("↓") ? "down" : "neutral"}">${setup.params.CVD}</span></div>
-                        <div class="param-row"><span class="param-label">💹 Price:</span><span class="param-value ${setup.params.Price.includes("↑") ? "up" : setup.params.Price.includes("↓") ? "down" : "neutral"}">${setup.params.Price}</span></div>
-                    </div>
-                    
-                    <div class="inverse-box ${params.inverse ? "show" : ""}" id="inverse-${setup.id}">
-                        <strong>⚠️ INVERSE PAIR (${params.pair}):</strong><br>${inverseContent}
-                    </div>
-                    
-                    <div class="checklist">
-                        <strong>✅ Kondisi Entry:</strong>
-                        ${setup.entry.map((item, idx) => `
-                            <label class="checklist-item">
-                                <input type="checkbox" data-setup="${setup.id}" data-item="${idx}" onchange="updateProgress(${setup.id})">
-                                <span>${item}</span>
-                            </label>
-                        `).join("")}
-                        <div class="progress-bar"><div class="progress-fill" id="progress-${setup.id}" style="width: 0%"></div></div>
-                        <small style="color:var(--text-secondary)" id="progress-text-${setup.id}">0/4 kondisi terpenuhi</small>
-                    </div>
-                    
-                    <div class="execution-box">
-                        <strong>🎯 Execution:</strong><br>${setup.execution}
-                    </div>
-                    
-                    <div class="invalidation-box">
-                        <strong>⚠️ Risk & Invalidation:</strong><br>${setup.invalidation}
-                    </div>
-                    
-                    <span class="timeframe-badge">🕐 TF: ${setup.timeframe}</span>
-                `;
-                
-                grid.appendChild(card);
-            });
+        // Inverse box (semua type — dari File_4 logic, diperluas)
+        const inverseHtml = c.inverseQuote ? buildInverseBox(setup.type, currentSymbol) : '';
+
+        // Type badge
+        const typeLabel = setup.type === 'neutral' ? 'REVERSAL' : setup.type.toUpperCase();
+        const exitBadge = setup.isExitSignal ? `<span class="badge-exit">🚪 EXIT SIGNAL</span>` : '';
+
+        // Win rate label (exit setup dibedakan)
+        const winRateLabel = setup.isExitSignal
+            ? `🎯 Akurasi sinyal exit: ${winRate}%`
+            : `📈 Win Rate estimasi: ${winRate}% (adjusted for ${currentSymbol})`;
+
+        // TF tags
+        const tfTags = params.tf.split('-').map(t => `<span class="timeframe-tag">${t.trim()}</span>`).join('');
+
+        const card = document.createElement('div');
+        card.className = 'setup-card';
+        card.setAttribute('data-type',    setup.type);
+        card.setAttribute('data-prob',    setup.prob);
+        card.setAttribute('data-id',      setup.id);
+        card.setAttribute('data-winrate', winRate);
+
+        card.innerHTML = `
+            <div class="setup-header">
+                <h2 class="setup-title">${setup.id}. ${setup.title}</h2>
+                <div class="badge-row">
+                    ${exitBadge}
+                    <span class="setup-type type-${setup.type}">${typeLabel}</span>
+                </div>
+            </div>
+            <div class="indicator-row"><span class="indicator-label">OI:</span><span>${setup.oiDesc} (threshold +${params.oiSpike}% / ROC >${params.oiROC}%/bar)</span></div>
+            <div class="indicator-row"><span class="indicator-label">CVD:</span><span>${setup.cvdDesc} (multiplier ≥${params.cvdMult}×)</span></div>
+            <div class="indicator-row"><span class="indicator-label">PRICE:</span><span>${setup.priceDesc}</span></div>
+            ${checklistHtml}
+            ${inverseHtml}
+            <div><strong>🎯 Entry:</strong> ${setup.entry}</div>
+            <div style="margin:8px 0"><strong>🛑 SL:</strong> ${setup.sl} &nbsp;|&nbsp; <strong>🏆 Target:</strong> ${setup.target}</div>
+            <div class="risk-box"><strong>⚠️ Invalidation:</strong> ${setup.riskInv}</div>
+            <div class="indicator-row"><span class="indicator-label">🔍 Catatan:</span><span>${params.note} | TF: ${params.tf}</span></div>
+            <div class="probability">${winRateLabel}</div>
+            <div class="timeframe-tags">${tfTags}</div>
+        `;
+
+        container.appendChild(card);
+    });
+
+    restoreAllChecklistStates();
+}
+
+// ══════════════════════════════════════════════
+// CHECKLIST PERSISTENCE
+// ══════════════════════════════════════════════
+function restoreAllChecklistStates() {
+    document.querySelectorAll('.setup-card').forEach(card => {
+        const id = card.getAttribute('data-id');
+        card.querySelectorAll('input[type="checkbox"]').forEach((cb, idx) => {
+            const key = `futures_checklist_${currentSymbol}_${id}_${idx}`;
+            try { cb.checked = (localStorage.getItem(key) === 'true'); } catch(e) {}
+            // Pakai onchange langsung (tidak perlu cloneNode karena innerHTML baru setiap render)
+            cb.onchange = (e) => {
+                const cid = e.target.closest('.setup-card')?.getAttribute('data-id');
+                const cidx = e.target.getAttribute('data-cond-index');
+                try { localStorage.setItem(`futures_checklist_${currentSymbol}_${cid}_${cidx}`, e.target.checked); } catch(e2) {}
+                updateProgress(cid);
+            };
+        });
+        updateProgress(id);
+    });
+}
+
+function updateProgress(setupId) {
+    const card = document.querySelector(`.setup-card[data-id="${setupId}"]`);
+    if (!card) return;
+    const boxes = card.querySelectorAll('input[type="checkbox"]');
+    const total   = boxes.length;
+    const checked = Array.from(boxes).filter(cb => cb.checked).length;
+    const pct = total > 0 ? Math.round((checked / total) * 100) : 0;
+    const bar = document.getElementById(`pb-${setupId}`);
+    const lbl = document.getElementById(`pl-${setupId}`);
+    if (bar) bar.style.width = `${pct}%`;
+    if (lbl) lbl.textContent = `${checked} / ${total} kondisi terpenuhi`;
+}
+
+// ══════════════════════════════════════════════
+// FILTER
+// ══════════════════════════════════════════════
+function filterSetups(filter) {
+    currentFilter = filter;
+    document.querySelectorAll('.setup-card').forEach(card => {
+        const type    = card.getAttribute('data-type');
+        const winRate = parseInt(card.getAttribute('data-winrate'), 10) || 0;
+        const prob    = card.getAttribute('data-prob');
+        let show = false;
+        if      (filter === 'all')       show = true;
+        else if (filter === 'bullish')   show = (type === 'bullish');
+        else if (filter === 'bearish')   show = (type === 'bearish');
+        else if (filter === 'neutral')   show = (type === 'neutral');
+        // high-prob: cek actual winRate DAN prob===high (keduanya harus terpenuhi)
+        else if (filter === 'high-prob') show = (prob === 'high' && winRate > 60);
+        card.style.display = show ? 'block' : 'none';
+    });
+}
+
+// ══════════════════════════════════════════════
+// EXPORT JOURNAL
+// ══════════════════════════════════════════════
+function exportJournal() {
+    const c = contractParams[currentSymbol];
+    let journal  = `════════════════════════════════════\n`;
+    journal     += `Futures OI+CVD Trading Journal\n`;
+    journal     += `Simbol : ${currentSymbol} — ${c.name} (${c.pair})\n`;
+    journal     += `Tanggal: ${new Date().toLocaleString('id-ID')}\n`;
+    journal     += `════════════════════════════════════\n\n`;
+
+    let hasAny = false;
+    document.querySelectorAll('.setup-card').forEach(card => {
+        const title   = card.querySelector('.setup-title')?.innerText || 'Setup';
+        const type    = card.getAttribute('data-type');
+        const wr      = card.getAttribute('data-winrate');
+        const boxes   = card.querySelectorAll('input[type="checkbox"]');
+        const total   = boxes.length;
+        const checked = [];
+        boxes.forEach((cb, i) => {
+            if (cb.checked) checked.push(cb.parentElement.querySelector('span')?.innerText || `Kondisi ${i+1}`);
+        });
+        if (checked.length > 0) {
+            hasAny = true;
+            journal += `▶ ${title} [${type.toUpperCase()}] | WR: ${wr}%\n`;
+            journal += `  Kondisi terpenuhi: ${checked.length}/${total}\n`;
+            checked.forEach(t => journal += `    ✅ ${t}\n`);
+            journal += `\n`;
         }
+    });
 
-        // Update symbol
-        function updateSymbol() {
-            currentSymbol = document.getElementById("symbol").value;
-            const params = symbolParams[currentSymbol];
-            
-            // Update contract info
-            document.getElementById("contractInfo").innerHTML = `
-                <span>📏 ${params.pair}</span>
-                <span>⚡ OI Spike: ${params.oiSpike}</span>
-                <span>📊 CVD: ${params.cvdMult}</span>
-                <span>🕐 TF: ${params.tf}</span>
-                ${params.inverse ? '<span class="inverse-warning">⚠️ INVERSE PAIR</span>' : ''}
-            `;
-            document.getElementById("inverseWarning").style.display = params.inverse ? "inline" : "none";
-            
-            // Re-render setups with adjusted win rates
+    if (!hasAny) {
+        journal += `⚠️ Tidak ada checklist yang dicentang.\n`;
+        journal += `Centang kondisi pada setup card terlebih dahulu.\n`;
+    }
+
+    const blob = new Blob([journal], { type:"text/plain;charset=utf-8" });
+    const a    = document.createElement('a');
+    a.href     = URL.createObjectURL(blob);
+    a.download = `trading_journal_${currentSymbol}_${Date.now()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+}
+
+// ══════════════════════════════════════════════
+// EVENTS & INIT
+// ══════════════════════════════════════════════
+function bindEvents() {
+    const sel = document.getElementById('symbolSelect');
+    if (sel) {
+        sel.value = currentSymbol;
+        sel.addEventListener('change', e => {
+            currentSymbol = e.target.value;
             renderSetups();
-            loadChecklistState();
-        }
+            filterSetups(currentFilter);
+        });
+    }
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            filterSetups(btn.getAttribute('data-filter'));
+        });
+    });
+    document.getElementById('exportJournalBtn')?.addEventListener('click', exportJournal);
+}
 
-        // Filter setups
-        function filterSetups(filter) {
-            currentFilter = filter;
-            document.querySelectorAll(".filter-btn").forEach(btn => btn.classList.remove("active"));
-            event.target.classList.add("active");
-            renderSetups();
-        }
-
-        // Update progress bar
-        function updateProgress(setupId) {
-            const checkboxes = document.querySelectorAll(`input[data-setup="${setupId}"]`);
-            const checked = Array.from(checkboxes).filter(cb => cb.checked).length;
-            const total = checkboxes.length;
-            const percent = (checked / total) * 100;
-            
-            document.getElementById(`progress-${setupId}`).style.width = `${percent}%`;
-            document.getElementById(`progress-text-${setupId}`).textContent = `${checked}/${total} kondisi terpenuhi`;
-            
-            saveChecklistState();
-        }
-
-        // Save/Load checklist state
-        function saveChecklistState() {
-            const state = {};
-            document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-                if (cb.checked) {
-                    const key = `${currentSymbol}-${cb.dataset.setup}-${cb.dataset.item}`;
-                    state[key] = true;
-                }
-            });
-            localStorage.setItem(`oi-cvd-checklist-${currentSymbol}`, JSON.stringify(state));
-        }
-
-        function loadChecklistState() {
-            const state = JSON.parse(localStorage.getItem(`oi-cvd-checklist-${currentSymbol}`) || "{}");
-            document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-                const key = `${currentSymbol}-${cb.dataset.setup}-${cb.dataset.item}`;
-                cb.checked = !!state[key];
-                if (cb.checked) updateProgress(cb.dataset.setup);
-            });
-        }
-
-        // Export journal
-        function exportJournal() {
-            let content = `📊 OI+CVD Trading Journal\n`;
-            content += `Symbol: ${currentSymbol} | Date: ${new Date().toISOString()}\n`;
-            content += `=${"=".repeat(50)}\n\n`;
-            
-            setups.forEach(setup => {
-                const checkboxes = document.querySelectorAll(`input[data-setup="${setup.id}"]`);
-                const checked = Array.from(checkboxes).filter(cb => cb.checked);
-                if (checked.length > 0) {
-                    content += `📋 Setup #${setup.id}: ${setup.name}\n`;
-                    content += `Type: ${setup.type.toUpperCase()} | WR: ~${setup.winRate}%\n`;
-                    content += `Kondisi Terpenuhi (${checked.length}/${checkboxes.length}):\n`;
-                    checked.forEach(cb => {
-                        const idx = cb.dataset.item;
-                        content += `  ✅ ${setup.entry[idx]}\n`;
-                    });
-                    content += `\n`;
-                }
-            });
-            
-            const blob = new Blob([content], { type: "text/plain" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = `trading_journal_${currentSymbol}_${Date.now()}.txt`;
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-    </script>
+renderSetups();
+bindEvents();
+filterSetups('all');
+</script>
 </body>
 </html>

@@ -1,835 +1,546 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Panduan OI + CVD Futures Lab</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<style>
-:root {
-  --bg:        #070711;
-  --bg2:       #0d0d1f;
-  --bg3:       #111827;
-  --border:    #1e2a42;
-  --border2:   #2d3f5e;
-  --purple:    #8b5cf6;
-  --purple2:   #c084fc;
-  --blue:      #60a5fa;
-  --green:     #34d399;
-  --red:       #f87171;
-  --yellow:    #fbbf24;
-  --cyan:      #22d3ee;
-  --text:      #e2e8f0;
-  --muted:     #64748b;
-  --mono:      'JetBrains Mono', monospace;
-  --sans:      'DM Sans', sans-serif;
-}
-
-*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-
-html { scroll-behavior: smooth; }
-
-body {
-  font-family: var(--sans);
-  background: var(--bg);
-  color: var(--text);
-  line-height: 1.7;
-  overflow-x: hidden;
-}
-
-/* ── Noise overlay ── */
-body::before {
-  content:'';
-  position:fixed;
-  inset:0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
-  pointer-events:none;
-  z-index:0;
-  opacity:0.4;
-}
-
-/* ── Layout ── */
-.wrapper { max-width: 900px; margin: 0 auto; padding: 0 24px 80px; position:relative; z-index:1; }
-
-/* ── Hero ── */
-.hero {
-  text-align: center;
-  padding: 72px 20px 56px;
-  position: relative;
-}
-.hero::after {
-  content:'';
-  position:absolute;
-  bottom:0; left:50%; transform:translateX(-50%);
-  width:1px; height:56px;
-  background: linear-gradient(to bottom, var(--purple), transparent);
-}
-.hero-label {
-  font-family: var(--mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.2em;
-  color: var(--purple);
-  text-transform: uppercase;
-  margin-bottom: 18px;
-  display: inline-block;
-  border: 1px solid rgba(139,92,246,0.3);
-  padding: 4px 14px;
-  border-radius: 20px;
-}
-.hero h1 {
-  font-size: clamp(2rem, 5vw, 3.2rem);
-  font-weight: 600;
-  letter-spacing: -0.03em;
-  line-height: 1.15;
-  background: linear-gradient(135deg, #c084fc 0%, #60a5fa 50%, #34d399 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  margin-bottom: 16px;
-}
-.hero p {
-  color: var(--muted);
-  font-size: 1.05rem;
-  max-width: 580px;
-  margin: 0 auto;
-}
-
-/* ── Table of Contents ── */
-.toc {
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 28px 32px;
-  margin: 48px 0;
-  position: relative;
-  overflow: hidden;
-}
-.toc::before {
-  content:'';
-  position:absolute;
-  top:0; left:0; right:0; height:2px;
-  background: linear-gradient(90deg, var(--purple), var(--blue), var(--green));
-}
-.toc-title {
-  font-family: var(--mono);
-  font-size: 0.7rem;
-  letter-spacing:0.15em;
-  color: var(--muted);
-  text-transform:uppercase;
-  margin-bottom:16px;
-}
-.toc-list { list-style:none; display:grid; grid-template-columns: 1fr 1fr; gap: 6px 24px; }
-.toc-list a {
-  color: var(--blue);
-  text-decoration:none;
-  font-size:0.9rem;
-  display:flex;
-  align-items:center;
-  gap:8px;
-  padding:4px 0;
-  transition:color 0.2s;
-}
-.toc-list a:hover { color: var(--purple2); }
-.toc-list a::before {
-  content: attr(data-num);
-  font-family: var(--mono);
-  font-size:0.65rem;
-  color:var(--muted);
-  min-width:22px;
-}
-
-/* ── Sections ── */
-.section { margin-bottom: 64px; }
-.section-label {
-  font-family: var(--mono);
-  font-size: 0.65rem;
-  letter-spacing: 0.2em;
-  color: var(--purple);
-  text-transform: uppercase;
-  margin-bottom: 8px;
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
-.section-label::after { content:''; flex:1; height:1px; background:var(--border); }
-.section h2 {
-  font-size: 1.6rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  margin-bottom: 20px;
-  color: #f1f5f9;
-}
-.section p, .section li { color: #94a3b8; font-size: 0.95rem; margin-bottom:10px; }
-.section ul, .section ol { padding-left: 20px; }
-.section li { margin-bottom:8px; }
-
-/* ── Cards ── */
-.card {
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 20px 24px;
-  margin-bottom: 16px;
-  transition: border-color 0.2s;
-}
-.card:hover { border-color: var(--border2); }
-
-/* ── Info grid ── */
-.info-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:20px 0; }
-.info-card {
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  border-radius:14px;
-  padding:16px 18px;
-}
-.info-card .ic-label {
-  font-family:var(--mono);
-  font-size:0.65rem;
-  letter-spacing:0.12em;
-  text-transform:uppercase;
-  margin-bottom:6px;
-}
-.info-card p { font-size:0.85rem; color:#94a3b8; margin:0; }
-
-/* ── Step cards ── */
-.steps { counter-reset: step; }
-.step {
-  display:flex;
-  gap:20px;
-  margin-bottom:24px;
-  position:relative;
-}
-.step::before {
-  content:'';
-  position:absolute;
-  left:19px; top:44px;
-  width:2px; height:calc(100% + 8px);
-  background: linear-gradient(to bottom, var(--border2), transparent);
-}
-.step:last-child::before { display:none; }
-.step-num {
-  counter-increment: step;
-  width:40px; height:40px;
-  min-width:40px;
-  border-radius:50%;
-  background: rgba(139,92,246,0.15);
-  border: 1px solid rgba(139,92,246,0.4);
-  display:flex; align-items:center; justify-content:center;
-  font-family:var(--mono);
-  font-size:0.75rem;
-  color:var(--purple2);
-  font-weight:700;
-}
-.step-body { flex:1; padding-top:8px; }
-.step-body h3 { font-size:1rem; font-weight:600; color:#f1f5f9; margin-bottom:6px; }
-.step-body p, .step-body li { font-size:0.88rem; color:#94a3b8; }
-
-/* ── Callout boxes ── */
-.callout {
-  border-radius:14px;
-  padding:16px 20px;
-  margin:20px 0;
-  font-size:0.88rem;
-  line-height:1.6;
-  display:flex;
-  gap:14px;
-}
-.callout-icon { font-size:1.2rem; flex-shrink:0; margin-top:1px; }
-.callout-body { color:#94a3b8; }
-.callout-body strong { color:var(--text); }
-.callout.tip    { background:rgba(52,211,153,0.06); border:1px solid rgba(52,211,153,0.25); }
-.callout.warn   { background:rgba(251,191,36,0.06); border:1px solid rgba(251,191,36,0.25); }
-.callout.danger { background:rgba(248,113,113,0.06); border:1px solid rgba(248,113,113,0.25); }
-.callout.info   { background:rgba(96,165,250,0.06); border:1px solid rgba(96,165,250,0.25); }
-
-/* ── Pill tags ── */
-.tag {
-  display:inline-block;
-  padding:2px 10px;
-  border-radius:20px;
-  font-family:var(--mono);
-  font-size:0.7rem;
-  font-weight:600;
-  margin:2px;
-}
-.tag.bull  { background:rgba(52,211,153,0.12); border:1px solid rgba(52,211,153,0.4); color:#34d399; }
-.tag.bear  { background:rgba(248,113,113,0.12); border:1px solid rgba(248,113,113,0.4); color:#f87171; }
-.tag.neut  { background:rgba(251,191,36,0.12);  border:1px solid rgba(251,191,36,0.4);  color:#fbbf24; }
-.tag.exit  { background:rgba(34,211,238,0.12);  border:1px solid rgba(34,211,238,0.4);  color:#22d3ee; }
-.tag.inv   { background:rgba(251,191,36,0.12);  border:1px solid rgba(251,191,36,0.4);  color:#fbbf24; }
-
-/* ── Formula / code block ── */
-.formula {
-  font-family: var(--mono);
-  background: rgba(15,23,42,0.8);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--purple);
-  border-radius: 10px;
-  padding: 14px 18px;
-  font-size: 0.82rem;
-  color: var(--purple2);
-  margin: 14px 0;
-  line-height:1.8;
-  overflow-x:auto;
-}
-.formula .comment { color: var(--muted); }
-.formula .val-green { color: var(--green); }
-.formula .val-red   { color: var(--red); }
-.formula .val-blue  { color: var(--blue); }
-
-/* ── Setup table ── */
-.setup-table { width:100%; border-collapse:collapse; margin:20px 0; font-size:0.82rem; }
-.setup-table th {
-  text-align:left;
-  padding:10px 14px;
-  background:rgba(139,92,246,0.1);
-  border-bottom:1px solid var(--border);
-  font-family:var(--mono);
-  font-size:0.65rem;
-  letter-spacing:0.1em;
-  text-transform:uppercase;
-  color:var(--muted);
-}
-.setup-table td {
-  padding:10px 14px;
-  border-bottom:1px solid var(--border);
-  color:#94a3b8;
-  vertical-align:top;
-}
-.setup-table tr:last-child td { border-bottom:none; }
-.setup-table tr:hover td { background:rgba(255,255,255,0.02); }
-
-/* ── Divider ── */
-.divider {
-  height:1px;
-  background: linear-gradient(90deg, transparent, var(--border), transparent);
-  margin:48px 0;
-}
-
-/* ── Sticky nav dots ── */
-.nav-dots {
-  position:fixed;
-  right:24px;
-  top:50%;
-  transform:translateY(-50%);
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-  z-index:100;
-}
-.nav-dot {
-  width:6px; height:6px;
-  border-radius:50%;
-  background:var(--border2);
-  cursor:pointer;
-  transition:all 0.2s;
-  border:none;
-}
-.nav-dot.active, .nav-dot:hover {
-  background:var(--purple);
-  transform:scale(1.5);
-}
-
-/* ── Fade-in animation ── */
-@keyframes fadeUp {
-  from { opacity:0; transform:translateY(20px); }
-  to   { opacity:1; transform:translateY(0); }
-}
-.section { animation: fadeUp 0.5s ease both; }
-.section:nth-child(2)  { animation-delay:.05s }
-.section:nth-child(3)  { animation-delay:.10s }
-.section:nth-child(4)  { animation-delay:.15s }
-.section:nth-child(5)  { animation-delay:.20s }
-.section:nth-child(6)  { animation-delay:.25s }
-.section:nth-child(7)  { animation-delay:.30s }
-.section:nth-child(8)  { animation-delay:.35s }
-
-/* ── Responsive ── */
-@media (max-width:640px) {
-  .toc-list     { grid-template-columns:1fr; }
-  .info-grid    { grid-template-columns:1fr; }
-  .nav-dots     { display:none; }
-  .setup-table  { display:block; overflow-x:auto; }
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panduan OI + CVD Futures Lab</title>
+    <style>
+        :root {
+            --bg-primary: #0a0e17;
+            --bg-secondary: #131a29;
+            --bg-card: #1a233a;
+            --text-primary: #e6eef7;
+            --text-secondary: #94a3b8;
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --accent-yellow: #f59e0b;
+            --border-color: #2d3748;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            padding: 16px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        /* 🔗 Navigation Bar - LINK BOLAK-BALIK */
+        .nav-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            margin-bottom: 24px;
+            border: 1px solid var(--border-color);
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+        }
+        
+        .nav-logo {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--accent-blue);
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .nav-btn {
+            padding: 8px 16px;
+            background: var(--accent-blue);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .nav-btn:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+        }
+        
+        .nav-btn.app {
+            background: var(--accent-green);
+        }
+        
+        .nav-btn.app:hover {
+            background: #059669;
+        }
+        
+        /* Header */
+        header {
+            text-align: center;
+            padding: 28px 20px;
+            margin-bottom: 28px;
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+        }
+        
+        header h1 {
+            font-size: 1.6rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        header p { color: var(--text-secondary); }
+        
+        /* Table of Contents */
+        .toc {
+            background: var(--bg-card);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .toc h3 {
+            margin-bottom: 12px;
+            color: var(--accent-blue);
+            font-size: 1.1rem;
+        }
+        
+        .toc ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .toc li {
+            margin: 6px 0;
+        }
+        
+        .toc a {
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        
+        .toc a:hover { color: var(--accent-blue); }
+        
+        /* Content Sections */
+        section {
+            background: var(--bg-card);
+            padding: 24px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+        }
+        
+        section h2 {
+            color: var(--accent-blue);
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 1.3rem;
+        }
+        
+        section h3 {
+            color: var(--accent-green);
+            margin: 20px 0 12px;
+            font-size: 1.1rem;
+        }
+        
+        section p { margin-bottom: 12px; }
+        
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 0.95rem;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        th {
+            background: var(--bg-secondary);
+            color: var(--accent-blue);
+            font-weight: 600;
+        }
+        
+        tr:hover { background: var(--bg-secondary); }
+        
+        /* Code blocks */
+        code {
+            background: var(--bg-secondary);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            color: var(--accent-green);
+        }
+        
+        /* Warning boxes */
+        .warning {
+            background: rgba(245, 158, 11, 0.15);
+            border-left: 4px solid var(--accent-yellow);
+            padding: 14px 18px;
+            border-radius: 0 8px 8px 0;
+            margin: 16px 0;
+        }
+        
+        .warning strong { color: var(--accent-yellow); }
+        
+        .danger {
+            background: rgba(239, 68, 68, 0.15);
+            border-left: 4px solid var(--accent-red);
+            padding: 14px 18px;
+            border-radius: 0 8px 8px 0;
+            margin: 16px 0;
+        }
+        
+        .danger strong { color: var(--accent-red); }
+        
+        .tip {
+            background: rgba(16, 185, 129, 0.15);
+            border-left: 4px solid var(--accent-green);
+            padding: 14px 18px;
+            border-radius: 0 8px 8px 0;
+            margin: 16px 0;
+        }
+        
+        .tip strong { color: var(--accent-green); }
+        
+        /* Setup cards preview */
+        .setup-preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin: 16px 0;
+        }
+        
+        .setup-card-mini {
+            background: var(--bg-secondary);
+            padding: 16px;
+            border-radius: 10px;
+            border-left: 4px solid var(--accent-blue);
+        }
+        
+        .setup-card-mini.bullish { border-left-color: var(--accent-green); }
+        .setup-card-mini.bearish { border-left-color: var(--accent-red); }
+        .setup-card-mini.neutral { border-left-color: var(--accent-yellow); }
+        
+        .setup-card-mini h4 {
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+        
+        .setup-card-mini .wr {
+            font-size: 0.85rem;
+            color: var(--accent-green);
+            font-weight: 500;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-bar { flex-direction: column; gap: 12px; }
+            section { padding: 20px; }
+            table { font-size: 0.9rem; }
+            th, td { padding: 10px 8px; }
+        }
+    </style>
 </head>
 <body>
-
-<!-- Nav dots -->
-<nav class="nav-dots" id="navDots"></nav>
-
-<div class="wrapper">
-
-  <!-- ── HERO ── -->
-  <div class="hero">
-    <span class="hero-label">Dokumentasi &amp; Panduan Penggunaan</span>
-    <h1>OI + CVD<br>Futures Lab</h1>
-    <p>Tutorial lengkap cara membaca, menggunakan, dan menginterpretasikan setiap fitur aplikasi trading setup ini.</p>
-  </div>
-
-  <!-- ── TOC ── -->
-  <nav class="toc">
-    <div class="toc-title">Daftar Isi</div>
-    <ul class="toc-list">
-      <li><a href="#sec-apa" data-num="01">Apa itu OI & CVD?</a></li>
-      <li><a href="#sec-antarmuka" data-num="02">Mengenal Antarmuka</a></li>
-      <li><a href="#sec-simbol" data-num="03">Pilih Instrumen</a></li>
-      <li><a href="#sec-inverse" data-num="04">Pair Inverse ⚠️</a></li>
-      <li><a href="#sec-setup" data-num="05">10 Setup Trading</a></li>
-      <li><a href="#sec-checklist" data-num="06">Cara Pakai Checklist</a></li>
-      <li><a href="#sec-filter" data-num="07">Filter & High Prob</a></li>
-      <li><a href="#sec-journal" data-num="08">Export Journal</a></li>
-    </ul>
-  </nav>
-
-  <!-- ══════════════════════════════════════ -->
-  <!-- 01 — APA ITU OI & CVD                 -->
-  <!-- ══════════════════════════════════════ -->
-  <section class="section" id="sec-apa">
-    <div class="section-label" data-section="01">Konsep Dasar</div>
-    <h2>Apa itu Open Interest & CVD?</h2>
-    <p>Dua indikator ini adalah inti dari analisis order flow di pasar futures. Kalau kamu hanya punya harga (OHLCV), kamu hanya melihat <em>hasil</em> pertarungan. OI dan CVD memperlihatkan <em>siapa yang bertarung dan seberapa keras</em>.</p>
-
-    <div class="info-grid">
-      <div class="info-card">
-        <div class="ic-label" style="color:var(--blue)">Open Interest (OI)</div>
-        <p>Jumlah total kontrak futures yang masih <strong>terbuka / belum ditutup</strong>. Setiap kontrak OI = 1 buyer + 1 seller yang sama-sama belum exit.</p>
-      </div>
-      <div class="info-card">
-        <div class="ic-label" style="color:var(--purple2)">Cumulative Volume Delta (CVD)</div>
-        <p>Selisih kumulatif antara <strong>volume beli agresif</strong> (market buy) dan <strong>volume jual agresif</strong> (market sell). Ukuran tekanan beli vs jual.</p>
-      </div>
-    </div>
-
-    <div class="card">
-      <p style="color:#f1f5f9; font-weight:500; margin-bottom:12px;">Kombinasi OI + Price = Baca Siapa yang Masuk</p>
-      <div class="formula">
-<span class="val-green">OI ↑  + Price ↑</span>  → Fresh LONGS masuk  (Long Buildup)   <span class="comment">// buyer baru, trend bullish kuat</span>
-<span class="val-red">OI ↑  + Price ↓</span>  → Fresh SHORTS masuk (Short Buildup)  <span class="comment">// seller baru, trend bearish kuat</span>
-<span class="val-blue">OI ↓  + Price ↑</span>  → SHORT COVERING      (Weak Rally)      <span class="comment">// seller exit, bukan buyer baru</span>
-<span class="val-blue">OI ↓  + Price ↓</span>  → LONG LIQUIDATION    (Weak Selloff)    <span class="comment">// buyer exit, bukan seller baru</span>
-      </div>
-    </div>
-
-    <div class="callout tip">
-      <span class="callout-icon">💡</span>
-      <div class="callout-body"><strong>Kunci pembacaan CVD:</strong> CVD yang searah dengan price = konfirmasi kuat. CVD yang berlawanan dengan price = divergence = potensi reversal atau sinyal exit.</div>
-    </div>
-  </section>
-
-  <div class="divider"></div>
-
-  <!-- ══════════════════════════════════════ -->
-  <!-- 02 — ANTARMUKA                         -->
-  <!-- ══════════════════════════════════════ -->
-  <section class="section" id="sec-antarmuka">
-    <div class="section-label" data-section="02">Panduan UI</div>
-    <h2>Mengenal Antarmuka Aplikasi</h2>
-    <p>Aplikasi terdiri dari 4 area utama yang perlu kamu pahami:</p>
-
-    <div class="steps">
-      <div class="step">
-        <div class="step-num">A</div>
-        <div class="step-body">
-          <h3>Symbol Bar (atas)</h3>
-          <p>Dropdown pilih instrumen + info kontrak di sebelah kanan. Info kontrak menampilkan: nama pair, tick value, ukuran kontrak, threshold OI spike, dan CVD multiplier yang berlaku untuk simbol tersebut. Jika pair inverse, ada peringatan oranye.</p>
+    <!-- 🔗 NAVIGATION BAR - LINK BOLAK-BALIK -->
+    <nav class="nav-bar">
+        <div class="nav-logo">📖 Panduan OI+CVD Futures Lab</div>
+        <div class="nav-links">
+            <a href="futures-oi-cvd-lab.html" class="nav-btn app" title="Kembali ke Aplikasi Utama">
+                🚀 Buka Aplikasi
+            </a>
         </div>
-      </div>
-      <div class="step">
-        <div class="step-num">B</div>
-        <div class="step-body">
-          <h3>Filter Bar</h3>
-          <p>Row tombol untuk memfilter setup card yang ditampilkan. Tombol <strong>High Prob (&gt;60%)</strong> hanya menampilkan setup yang win rate aktualnya (sudah disesuaikan per simbol) benar-benar di atas 60%.</p>
+    </nav>
+
+    <header>
+        <h1>🎓 Tutorial Lengkap OI + CVD Futures Lab</h1>
+        <p>Dokumentasi & Panduan Penggunaan Aplikasi Trading Setup</p>
+    </header>
+
+    <!-- Table of Contents -->
+    <div class="toc">
+        <h3>📋 Daftar Isi</h3>
+        <ul>
+            <li><a href="#sec-apa">1. Apa itu OI & CVD?</a></li>
+            <li><a href="#sec-antarmuka">2. Mengenal Antarmuka</a></li>
+            <li><a href="#sec-simbol">3. Pilih Instrumen & Parameter</a></li>
+            <li><a href="#sec-inverse">4. ⚠️ Pair Inverse (PENTING!)</a></li>
+            <li><a href="#sec-setup">5. 10 Setup Trading</a></li>
+            <li><a href="#sec-checklist">6. Cara Pakai Checklist</a></li>
+            <li><a href="#sec-filter">7. Filter & High Probability</a></li>
+            <li><a href="#sec-journal">8. Export Trading Journal</a></li>
+        </ul>
+    </div>
+
+    <!-- Section 1 -->
+    <section id="sec-apa">
+        <h2>1️⃣ Konsep Dasar: Apa itu Open Interest & CVD?</h2>
+        <p>Dua indikator ini adalah inti dari analisis <strong>order flow</strong> di pasar futures. Kalau kamu hanya punya harga (OHLCV), kamu hanya melihat <em>hasil</em> pertarungan. OI dan CVD memperlihatkan <strong>siapa yang bertarung</strong> dan <strong>seberapa keras</strong>.</p>
+        
+        <h3>📊 Open Interest (OI)</h3>
+        <p>Jumlah total kontrak futures yang masih terbuka / belum ditutup. Setiap kontrak OI = 1 buyer + 1 seller yang sama-sama belum exit.</p>
+        
+        <h3>📈 Cumulative Volume Delta (CVD)</h3>
+        <p>Selisih kumulatif antara volume beli agresif (market buy) dan volume jual agresif (market sell). Ukuran tekanan beli vs jual.</p>
+        
+        <div class="tip">
+            <strong>💡 Kombinasi OI + Price = Baca Siapa yang Masuk:</strong><br><br>
+            <code>OI ↑ + Price ↑</code> → Fresh LONGS masuk (Long Buildup) — buyer baru, trend bullish kuat<br>
+            <code>OI ↑ + Price ↓</code> → Fresh SHORTS masuk (Short Buildup) — seller baru, trend bearish kuat<br>
+            <code>OI ↓ + Price ↑</code> → SHORT COVERING (Weak Rally) — seller exit, bukan buyer baru<br>
+            <code>OI ↓ + Price ↓</code> → LONG LIQUIDATION (Weak Selloff) — buyer exit, bukan seller baru
         </div>
-      </div>
-      <div class="step">
-        <div class="step-num">C</div>
-        <div class="step-body">
-          <h3>Setup Grid (tengah)</h3>
-          <p>10 setup card yang masing-masing berisi: deskripsi OI/CVD/Price, checklist kondisi entry, kotak inverse (jika pair inverse), entry/SL/target, invalidation, dan win rate estimasi.</p>
+        
+        <div class="warning">
+            <strong>🔑 Kunci pembacaan CVD:</strong> CVD yang searah dengan price = konfirmasi kuat. CVD yang berlawanan dengan price = divergence = potensi reversal atau sinyal exit.
         </div>
-      </div>
-      <div class="step">
-        <div class="step-num">D</div>
-        <div class="step-body">
-          <h3>Legend (bawah)</h3>
-          <p>Referensi cepat: tabel baca OI+Price, dan panduan lengkap cara membaca pair inverse USD/JPY, USD/CAD, USD/CHF.</p>
+    </section>
+
+    <!-- Section 2 -->
+    <section id="sec-antarmuka">
+        <h2>2️⃣ Mengenal Antarmuka Aplikasi</h2>
+        <p>Aplikasi terdiri dari 4 area utama yang perlu kamu pahami:</p>
+        
+        <h3>🅰️ Symbol Bar (atas)</h3>
+        <p>Dropdown pilih instrumen + info kontrak di sebelah kanan. Info kontrak menampilkan: nama pair, tick value, ukuran kontrak, threshold OI spike, dan CVD multiplier yang berlaku untuk simbol tersebut. Jika pair inverse, ada peringatan oranye.</p>
+        
+        <h3>🅱️ Filter Bar</h3>
+        <p>Row tombol untuk memfilter setup card yang ditampilkan. Tombol <strong>High Prob (&gt;60%)</strong> hanya menampilkan setup yang win rate aktualnya (sudah disesuaikan per simbol) benar-benar di atas 60%.</p>
+        
+        <h3>🆎 Setup Grid (tengah)</h3>
+        <p>10 setup card yang masing-masing berisi: deskripsi OI/CVD/Price, checklist kondisi entry, kotak inverse (jika pair inverse), entry/SL/target, invalidation, dan win rate estimasi.</p>
+        
+        <h3>🆑 Legend (bawah)</h3>
+        <p>Referensi cepat: tabel baca OI+Price, dan panduan lengkap cara membaca pair inverse USD/JPY, USD/CAD, USD/CHF.</p>
+    </section>
+
+    <!-- Section 3 -->
+    <section id="sec-simbol">
+        <h2>3️⃣ Memilih Instrumen & Parameter Dinamis</h2>
+        <p>Setiap simbol punya parameter berbeda karena volatilitas dan likuiditasnya berbeda. Saat kamu ganti simbol, semua threshold di checklist otomatis berubah.</p>
+        
+        <table>
+            <thead>
+                <tr><th>Simbol</th><th>Pair</th><th>OI Spike Min</th><th>CVD Mult</th><th>TF Rekomendasi</th><th>Catatan</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>6E1</td><td>EUR/USD</td><td>+5%</td><td>×1.5</td><td>15M–4H</td><td>Paling likuid, baseline</td></tr>
+                <tr><td>6B1</td><td>GBP/USD</td><td>+6%</td><td>×1.6</td><td>15M–4H</td><td>Volatil, spread 1–2 tick</td></tr>
+                <tr><td>6A1</td><td>AUD/USD</td><td>+5%</td><td>×1.4</td><td>30M–4H</td><td>Sensitif komoditas</td></tr>
+                <tr><td>6N1</td><td>NZD/USD</td><td>+4%</td><td>×1.3</td><td>1H–4H</td><td>Likuiditas tipis</td></tr>
+                <tr><td>6C1 ⚠️</td><td>USD/CAD</td><td>+5%</td><td>×1.5</td><td>30M–4H</td><td>Korelasi minyak, INVERSE</td></tr>
+                <tr><td>6S1 ⚠️</td><td>USD/CHF</td><td>+4%</td><td>×1.3</td><td>1H–4H</td><td>Safe haven, INVERSE</td></tr>
+                <tr><td>6J1 ⚠️</td><td>USD/JPY</td><td>+6%</td><td>×1.7</td><td>1H–4H</td><td>Carry trade, INVERSE</td></tr>
+                <tr><td>GC1</td><td>Gold</td><td>+7%</td><td>×1.8</td><td>1H–Daily</td><td>Volume &gt;150% untuk breakout</td></tr>
+                <tr><td>SI1</td><td>Silver</td><td>+8%</td><td>×2.0</td><td>4H–Daily</td><td>CVD smoothing disarankan</td></tr>
+                <tr><td>CL1</td><td>Crude Oil</td><td>+12%</td><td>×2.2</td><td>15M–1H</td><td>OI bisa &gt;20% saat laporan EIA</td></tr>
+            </tbody>
+        </table>
+        
+        <div class="tip">
+            <strong>ℹ️ Win Rate Adjustment:</strong> Setiap simbol punya penyesuaian win rate (contoh: GC1 +2%, 6N1 −3%). Nilai ini ditambahkan ke base win rate setiap setup, lalu di-cap di 40%–85%. Ini mencerminkan tingkat keandalan sinyal per instrumen berdasarkan karakteristik pasarnya.
         </div>
-      </div>
-    </div>
-  </section>
+    </section>
 
-  <div class="divider"></div>
-
-  <!-- ══════════════════════════════════════ -->
-  <!-- 03 — PILIH INSTRUMEN                   -->
-  <!-- ══════════════════════════════════════ -->
-  <section class="section" id="sec-simbol">
-    <div class="section-label" data-section="03">Instrumen</div>
-    <h2>Memilih Instrumen & Parameter Dinamis</h2>
-    <p>Setiap simbol punya parameter berbeda karena volatilitas dan likuiditasnya berbeda. Saat kamu ganti simbol, <strong>semua threshold di checklist otomatis berubah</strong>.</p>
-
-    <table class="setup-table">
-      <thead>
-        <tr>
-          <th>Simbol</th>
-          <th>Pair</th>
-          <th>OI Spike Min</th>
-          <th>CVD Mult</th>
-          <th>TF Rekomendasi</th>
-          <th>Catatan</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td><span style="color:var(--blue);font-family:var(--mono)">6E1</span></td><td>EUR/USD</td><td>+5%</td><td>×1.5</td><td>15M–4H</td><td>Paling likuid, baseline</td></tr>
-        <tr><td><span style="color:var(--blue);font-family:var(--mono)">6B1</span></td><td>GBP/USD</td><td>+6%</td><td>×1.6</td><td>15M–4H</td><td>Volatil, spread 1–2 tick</td></tr>
-        <tr><td><span style="color:var(--blue);font-family:var(--mono)">6A1</span></td><td>AUD/USD</td><td>+5%</td><td>×1.4</td><td>30M–4H</td><td>Sensitif komoditas</td></tr>
-        <tr><td><span style="color:var(--blue);font-family:var(--mono)">6N1</span></td><td>NZD/USD</td><td>+4%</td><td>×1.3</td><td>1H–4H</td><td>Likuiditas tipis</td></tr>
-        <tr><td><span style="color:var(--yellow);font-family:var(--mono)">6C1 ⚠️</span></td><td>USD/CAD</td><td>+5%</td><td>×1.5</td><td>30M–4H</td><td>Korelasi minyak, INVERSE</td></tr>
-        <tr><td><span style="color:var(--yellow);font-family:var(--mono)">6S1 ⚠️</span></td><td>USD/CHF</td><td>+4%</td><td>×1.3</td><td>1H–4H</td><td>Safe haven, INVERSE</td></tr>
-        <tr><td><span style="color:var(--yellow);font-family:var(--mono)">6J1 ⚠️</span></td><td>USD/JPY</td><td>+6%</td><td>×1.7</td><td>1H–4H</td><td>Carry trade, INVERSE</td></tr>
-        <tr><td><span style="color:var(--green);font-family:var(--mono)">GC1</span></td><td>Gold</td><td>+7%</td><td>×1.8</td><td>1H–Daily</td><td>Volume >150% untuk breakout</td></tr>
-        <tr><td><span style="color:var(--green);font-family:var(--mono)">SI1</span></td><td>Silver</td><td>+8%</td><td>×2.0</td><td>4H–Daily</td><td>CVD smoothing disarankan</td></tr>
-        <tr><td><span style="color:var(--red);font-family:var(--mono)">CL1</span></td><td>Crude Oil</td><td>+12%</td><td>×2.2</td><td>15M–1H</td><td>OI bisa >20% saat laporan EIA</td></tr>
-      </tbody>
-    </table>
-
-    <div class="callout info">
-      <span class="callout-icon">ℹ️</span>
-      <div class="callout-body"><strong>Win Rate Adjustment:</strong> Setiap simbol punya penyesuaian win rate (contoh: GC1 +2%, 6N1 −3%). Nilai ini ditambahkan ke base win rate setiap setup, lalu di-cap di 40%–85%. Ini mencerminkan tingkat keandalan sinyal per instrumen berdasarkan karakteristik pasarnya.</div>
-    </div>
-  </section>
-
-  <div class="divider"></div>
-
-  <!-- ══════════════════════════════════════ -->
-  <!-- 04 — PAIR INVERSE                      -->
-  <!-- ══════════════════════════════════════ -->
-  <section class="section" id="sec-inverse">
-    <div class="section-label" data-section="04">Pair Inverse</div>
-    <h2>⚠️ Memahami Pair Inverse (USD/JPY, USD/CAD, USD/CHF)</h2>
-
-    <p>Ini bagian yang <strong>paling sering bikin salah</strong> bagi trader yang baru pindah dari forex spot ke futures. Pahami ini dengan benar sebelum trading pair ini.</p>
-
-    <div class="callout warn">
-      <span class="callout-icon">⚠️</span>
-      <div class="callout-body">
-        <strong>Fakta penting:</strong> Kontrak futures CME untuk 6C1, 6S1, dan 6J1 sebenarnya adalah <strong>CAD/USD, CHF/USD, JPY/USD</strong> — bukan USD/CAD, USD/CHF, USD/JPY seperti yang biasa dilihat di forex spot. Mata uang <em>non-USD yang jadi base</em> di kontrak, USD yang jadi quote.
-      </div>
-    </div>
-
-    <div class="card">
-      <p style="color:#f1f5f9; font-weight:500; margin-bottom:14px;">Cara baca yang benar:</p>
-      <div class="formula">
-<span class="comment">// Contoh: 6J1 (kontrak JPY/USD)</span>
-Price NAIK  → JPY <span class="val-green">MENGUAT</span> → USD melemah → USD/JPY (forex) TURUN
-Price TURUN → JPY <span class="val-red">MELEMAH</span>  → USD menguat → USD/JPY (forex) NAIK
-
-<span class="comment">// Setup BULLISH di 6J1 artinya:</span>
-<span class="val-green">Cocok untuk: LONG JPY / SHORT USD</span>
-<span class="val-red">Bukan untuk: LONG USD/JPY</span>
-
-<span class="comment">// Setup BEARISH di 6J1 artinya:</span>
-<span class="val-red">Cocok untuk: SHORT JPY / LONG USD</span>
-<span class="val-green">Bukan untuk: SHORT USD/JPY</span>
-      </div>
-    </div>
-
-    <p style="margin-top:16px;">Aplikasi sudah otomatis menampilkan <strong>kotak oranye "INVERSE"</strong> di setiap setup card saat kamu pilih pair inverse. Kotak itu menjelaskan secara spesifik arah mana yang cocok, berdasarkan type setup (bullish / bearish / reversal).</p>
-
-    <div class="info-grid" style="margin-top:20px;">
-      <div class="info-card">
-        <div class="ic-label" style="color:var(--green)">Mau LONG JPY / CAD / CHF?</div>
-        <p>→ Cari setup <strong>BULLISH</strong> di 6J1 / 6C1 / 6S1<br>(price naik di kontrak = mata uang non-USD menguat)</p>
-      </div>
-      <div class="info-card">
-        <div class="ic-label" style="color:var(--red)">Mau SHORT JPY / CAD / CHF?</div>
-        <p>→ Cari setup <strong>BEARISH</strong> di 6J1 / 6C1 / 6S1<br>(price turun di kontrak = mata uang non-USD melemah)</p>
-      </div>
-    </div>
-  </section>
-
-  <div class="divider"></div>
-
-  <!-- ══════════════════════════════════════ -->
-  <!-- 05 — 10 SETUP                          -->
-  <!-- ══════════════════════════════════════ -->
-  <section class="section" id="sec-setup">
-    <div class="section-label" data-section="05">Setup Trading</div>
-    <h2>10 Setup Trading — Penjelasan Singkat</h2>
-    <p>Setiap setup dirancang untuk kondisi pasar yang spesifik. Jangan gunakan setup trending di pasar ranging, atau sebaliknya.</p>
-
-    <div class="card">
-      <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
-        <span class="tag bull">BULLISH</span>
-        <span style="color:#f1f5f9; font-weight:500;">1. Strong Bullish Trend</span>
-        <span style="margin-left:auto; font-family:var(--mono); font-size:0.7rem; color:var(--muted)">WR ~72%</span>
-      </div>
-      <p>OI naik 3 bar berturut + CVD breakout + price pullback ke EMA. Setup paling reliable di trending market. Entry di pullback, bukan di puncak.</p>
-    </div>
-
-    <div class="card">
-      <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
-        <span class="tag bear">BEARISH</span>
-        <span style="color:#f1f5f9; font-weight:500;">2. Strong Bearish Trend</span>
-        <span style="margin-left:auto; font-family:var(--mono); font-size:0.7rem; color:var(--muted)">WR ~68%</span>
-      </div>
-      <p>OI naik saat price turun = fresh shorts, bukan long liquidation. Kunci: konfirmasi dead cat bounce gagal sebelum entry short.</p>
-    </div>
-
-    <div class="card">
-      <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
-        <span class="tag neut">REVERSAL</span>
-        <span style="color:#f1f5f9; font-weight:500;">3. Bullish Divergence Reversal</span>
-        <span style="margin-left:auto; font-family:var(--mono); font-size:0.7rem; color:var(--muted)">WR ~60%</span>
-      </div>
-      <p>Price lower low + CVD higher low = smart money akumulasi saat retail panik jual. Butuh konfirmasi candle (hammer/engulfing) + support kuat.</p>
-    </div>
-
-    <div class="card">
-      <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
-        <span class="tag neut">REVERSAL</span>
-        <span style="color:#f1f5f9; font-weight:500;">4. Bearish Divergence Reversal</span>
-        <span style="margin-left:auto; font-family:var(--mono); font-size:0.7rem; color:var(--muted)">WR ~62%</span>
-      </div>
-      <p>Price higher high + CVD lower high = distribusi di puncak. Butuh resistance kuat + volume menurun saat rally sebagai konfirmasi.</p>
-    </div>
-
-    <div class="card">
-      <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
-        <span class="tag bull">BULLISH</span>
-        <span style="color:#f1f5f9; font-weight:500;">5. Valid Breakout Long</span>
-        <span style="margin-left:auto; font-family:var(--mono); font-size:0.7rem; color:var(--muted)">WR ~70%</span>
-      </div>
-      <p>Breakout valid = OI spike (fresh longs) + CVD vertical + volume >150%. Bukan short covering. Entry di retest resistance jadi support.</p>
-    </div>
-
-    <div class="card">
-      <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
-        <span class="tag bear">BEARISH</span>
-        <span style="color:#f1f5f9; font-weight:500;">6. Valid Breakdown Short</span>
-        <span style="margin-left:auto; font-family:var(--mono); font-size:0.7rem; color:var(--muted)">WR ~68%</span>
-      </div>
-      <p>Breakdown valid = OI spike (fresh shorts) + CVD waterfall + tidak ada buying absorption. Entry di pullback ke broken support.</p>
-    </div>
-
-    <div class="card">
-      <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
-        <span class="tag bull">BULLISH</span>
-        <span style="color:#f1f5f9; font-weight:500;">7. Accumulation Phase</span>
-        <span style="margin-left:auto; font-family:var(--mono); font-size:0.7rem; color:var(--muted)">WR ~54%</span>
-      </div>
-      <p>CVD naik meski price sideways = smart money beli diam-diam. Setup probabilitas medium — butuh konfirmasi lebih banyak sebelum entry.</p>
-    </div>
-
-    <div class="card">
-      <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
-        <span class="tag bear">BEARISH</span>
-        <span style="color:#f1f5f9; font-weight:500;">8. Distribution Phase</span>
-        <span style="margin-left:auto; font-family:var(--mono); font-size:0.7rem; color:var(--muted)">WR ~52%</span>
-      </div>
-      <p>CVD turun meski price sideways + OI naik + resistance multi-test = smart money jual diam-diam. Sama seperti akumulasi, butuh sabar.</p>
-    </div>
-
-    <div class="card">
-      <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
-        <span class="tag bear">BEARISH</span>
-        <span style="color:#f1f5f9; font-weight:500;">9. Weak Rally / Short Covering</span>
-        <span style="margin-left:auto; font-family:var(--mono); font-size:0.7rem; color:var(--muted)">WR ~48%</span>
-      </div>
-      <p style="color:var(--red);">⚠️ Setup berisiko tinggi! OI turun saat price naik = hanya short covering, bukan buyer baru. Rentan squeeze. Gunakan SL ketat.</p>
-    </div>
-
-    <div class="card">
-      <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
-        <span class="tag exit">EXIT SIGNAL</span>
-        <span style="color:#f1f5f9; font-weight:500;">10. Trend Exhaustion</span>
-        <span style="margin-left:auto; font-family:var(--mono); font-size:0.7rem; color:var(--muted)">Akurasi ~78%</span>
-      </div>
-      <p><strong>Ini bukan setup entry.</strong> OI drop drastis + CVD divergence = sinyal keluar atau kurangi posisi. Close 50–75% posisi, perketat trailing stop.</p>
-    </div>
-
-    <div class="callout warn">
-      <span class="callout-icon">⚠️</span>
-      <div class="callout-body"><strong>Setup #9 dan #10 punya win rate rendah (&lt;60%)</strong> — keduanya tidak akan muncul saat kamu aktifkan filter "High Prob". Gunakan dengan extra hati-hati.</div>
-    </div>
-  </section>
-
-  <div class="divider"></div>
-
-  <!-- ══════════════════════════════════════ -->
-  <!-- 06 — CHECKLIST                         -->
-  <!-- ══════════════════════════════════════ -->
-  <section class="section" id="sec-checklist">
-    <div class="section-label" data-section="06">Checklist</div>
-    <h2>Cara Menggunakan Checklist Entry</h2>
-    <p>Checklist adalah fitur utama aplikasi ini — memaksa kamu untuk <strong>mengkonfirmasi setiap kondisi</strong> sebelum entry, bukan trading berdasarkan feeling.</p>
-
-    <div class="steps">
-      <div class="step">
-        <div class="step-num">1</div>
-        <div class="step-body">
-          <h3>Buka chart di TF yang direkomendasikan</h3>
-          <p>Setiap setup card menampilkan TF rekomendasi di bagian bawah (misal: 15M–4H). Gunakan TF lebih tinggi untuk bias, TF lebih rendah untuk entry.</p>
+    <!-- Section 4 -->
+    <section id="sec-inverse">
+        <h2>4️⃣ ⚠️ Memahami Pair Inverse (USD/JPY, USD/CAD, USD/CHF)</h2>
+        
+        <div class="danger">
+            <strong>⚠️ FAKTA PENTING:</strong> Kontrak futures CME untuk 6C1, 6S1, dan 6J1 sebenarnya adalah <strong>CAD/USD, CHF/USD, JPY/USD</strong> — bukan USD/CAD, USD/CHF, USD/JPY seperti yang biasa dilihat di forex spot. Mata uang non-USD yang jadi base di kontrak, USD yang jadi quote.
         </div>
-      </div>
-      <div class="step">
-        <div class="step-num">2</div>
-        <div class="step-body">
-          <h3>Cocokkan kondisi OI, CVD, dan Price satu per satu</h3>
-          <p>Baca indikator di platform kamu (TradingView, Sierra Chart, dll). Centang kondisi yang benar-benar terpenuhi — jangan centang kalau ragu.</p>
+        
+        <h3>🔄 Cara baca yang benar:</h3>
+        <pre style="background:var(--bg-secondary); padding:16px; border-radius:8px; overflow-x:auto; font-size:0.9rem; margin:12px 0;">
+// Contoh: 6J1 (kontrak JPY/USD)
+Price NAIK  → JPY MENGUAT → USD melemah → USD/JPY (forex) TURUN
+Price TURUN → JPY MELEMAH  → USD menguat → USD/JPY (forex) NAIK
+
+// Setup BULLISH di 6J1 artinya:
+✅ Cocok untuk: LONG JPY / SHORT USD
+❌ Bukan untuk: LONG USD/JPY (forex spot)
+
+// Setup BEARISH di 6J1 artinya:
+✅ Cocok untuk: SHORT JPY / LONG USD
+❌ Bukan untuk: SHORT USD/JPY (forex spot)
+        </pre>
+        
+        <div class="tip">
+            <strong>🎯 Mau LONG JPY / CAD / CHF?</strong><br>
+            → Cari setup <strong>BULLISH</strong> di 6J1 / 6C1 / 6S1<br>
+            (price naik di kontrak = mata uang non-USD menguat)<br><br>
+            
+            <strong>🎯 Mau SHORT JPY / CAD / CHF?</strong><br>
+            → Cari setup <strong>BEARISH</strong> di 6J1 / 6C1 / 6S1<br>
+            (price turun di kontrak = mata uang non-USD melemah)
         </div>
-      </div>
-      <div class="step">
-        <div class="step-num">3</div>
-        <div class="step-body">
-          <h3>Perhatikan progress bar</h3>
-          <p>Progress bar di bawah checklist menunjukkan berapa % kondisi yang terpenuhi. Idealnya <strong>minimal 3 dari 4 kondisi</strong> (75%) sebelum pertimbangkan entry.</p>
+        
+        <p>Aplikasi sudah otomatis menampilkan kotak oranye <strong>"INVERSE"</strong> di setiap setup card saat kamu pilih pair inverse. Kotak itu menjelaskan secara spesifik arah mana yang cocok, berdasarkan type setup (bullish / bearish / reversal).</p>
+    </section>
+
+    <!-- Section 5 -->
+    <section id="sec-setup">
+        <h2>5️⃣ 10 Setup Trading — Penjelasan Singkat</h2>
+        <p>Setiap setup dirancang untuk kondisi pasar yang spesifik. Jangan gunakan setup trending di pasar ranging, atau sebaliknya.</p>
+        
+        <div class="setup-preview">
+            <div class="setup-card-mini bullish">
+                <h4>1. Strong Bullish Trend</h4>
+                <div class="wr">WR ~72%</div>
+                <p style="font-size:0.9rem; margin-top:8px;">OI naik 3 bar + CVD breakout + price pullback ke EMA. Entry di pullback, bukan di puncak.</p>
+            </div>
+            <div class="setup-card-mini bearish">
+                <h4>2. Strong Bearish Trend</h4>
+                <div class="wr">WR ~68%</div>
+                <p style="font-size:0.9rem; margin-top:8px;">OI naik saat price turun = fresh shorts. Kunci: konfirmasi dead cat bounce gagal sebelum entry.</p>
+            </div>
+            <div class="setup-card-mini neutral">
+                <h4>3. Bullish Divergence</h4>
+                <div class="wr">WR ~60%</div>
+                <p style="font-size:0.9rem; margin-top:8px;">Price lower low + CVD higher low = smart money akumulasi. Butuh konfirmasi candle + support kuat.</p>
+            </div>
+            <div class="setup-card-mini neutral">
+                <h4>4. Bearish Divergence</h4>
+                <div class="wr">WR ~62%</div>
+                <p style="font-size:0.9rem; margin-top:8px;">Price higher high + CVD lower high = distribusi di puncak. Butuh resistance kuat + volume menurun.</p>
+            </div>
+            <div class="setup-card-mini bullish">
+                <h4>5. Valid Breakout Long</h4>
+                <div class="wr">WR ~70%</div>
+                <p style="font-size:0.9rem; margin-top:8px;">Breakout valid = OI spike + CVD vertical + volume &gt;150%. Entry di retest resistance jadi support.</p>
+            </div>
+            <div class="setup-card-mini bearish">
+                <h4>6. Valid Breakdown Short</h4>
+                <div class="wr">WR ~68%</div>
+                <p style="font-size:0.9rem; margin-top:8px;">Breakdown valid = OI spike + CVD waterfall + tidak ada buying absorption.</p>
+            </div>
         </div>
-      </div>
-      <div class="step">
-        <div class="step-num">4</div>
-        <div class="step-body">
-          <h3>Cek kotak Invalidation</h3>
-          <p>Baca kondisi invalidasi di kotak merah. Kalau ada satu saja kondisi invalidasi yang terjadi, setup gugur — reset checklist dan tunggu ulang.</p>
+        
+        <div class="setup-preview">
+            <div class="setup-card-mini bullish">
+                <h4>7. Accumulation Phase</h4>
+                <div class="wr">WR ~54%</div>
+                <p style="font-size:0.9rem; margin-top:8px;">CVD naik meski price sideways = smart money beli diam-diam. Butuh konfirmasi lebih banyak.</p>
+            </div>
+            <div class="setup-card-mini bearish">
+                <h4>8. Distribution Phase</h4>
+                <div class="wr">WR ~52%</div>
+                <p style="font-size:0.9rem; margin-top:8px;">CVD turun meski price sideways + OI naik = smart money jual diam-diam. Butuh sabar.</p>
+            </div>
+            <div class="setup-card-mini bearish">
+                <h4>9. Weak Rally / Short Covering</h4>
+                <div class="wr">WR ~48% ⚠️</div>
+                <p style="font-size:0.9rem; margin-top:8px;">⚠️ Setup berisiko tinggi! OI turun saat price naik = hanya short covering. Gunakan SL ketat.</p>
+            </div>
+            <div class="setup-card-mini neutral">
+                <h4>10. Trend Exhaustion</h4>
+                <div class="wr">Akurasi ~78%</div>
+                <p style="font-size:0.9rem; margin-top:8px;">🛑 Bukan setup entry! OI drop drastis + CVD divergence = sinyal keluar atau kurangi posisi.</p>
+            </div>
         </div>
-      </div>
-      <div class="step">
-        <div class="step-num">5</div>
-        <div class="step-body">
-          <h3>Checklist tersimpan otomatis</h3>
-          <p>Status centang tersimpan di browser (localStorage) per simbol per setup. Kalau kamu ganti simbol atau refresh halaman, data centang kembali sesuai simbol yang dipilih.</p>
+        
+        <div class="warning">
+            <strong>⚠️ Setup #9 dan #10</strong> punya win rate rendah (&lt;60%) — keduanya tidak akan muncul saat kamu aktifkan filter "High Prob". Gunakan dengan extra hati-hati.
         </div>
-      </div>
-    </div>
+    </section>
 
-    <div class="callout danger">
-      <span class="callout-icon">🚫</span>
-      <div class="callout-body"><strong>Jangan skip checklist.</strong> Win rate yang tertulis di setup card adalah estimasi untuk trader yang mengikuti semua kondisi. Kalau kamu masuk tanpa semua kondisi terpenuhi, win rate aktual kamu bisa jauh lebih rendah.</div>
-    </div>
-  </section>
-
-  <div class="divider"></div>
-
-  <!-- ══════════════════════════════════════ -->
-  <!-- 07 — FILTER                            -->
-  <!-- ══════════════════════════════════════ -->
-  <section class="section" id="sec-filter">
-    <div class="section-label" data-section="07">Filter</div>
-    <h2>Menggunakan Filter Setup</h2>
-
-    <div class="card">
-      <p style="color:#f1f5f9; margin-bottom:12px; font-weight:500;">5 Filter yang tersedia:</p>
-      <div style="display:flex; flex-direction:column; gap:10px;">
-        <div style="display:flex; align-items:flex-start; gap:12px;">
-          <span style="background:#5b21b6; border:1px solid #a78bfa; color:white; padding:3px 12px; border-radius:20px; font-size:0.75rem; white-space:nowrap; margin-top:2px;">All</span>
-          <p style="margin:0; font-size:0.88rem;">Tampilkan semua 10 setup. Default saat pertama buka.</p>
+    <!-- Section 6 -->
+    <section id="sec-checklist">
+        <h2>6️⃣ Cara Menggunakan Checklist Entry</h2>
+        <p>Checklist adalah fitur utama aplikasi ini — memaksa kamu untuk mengkonfirmasi setiap kondisi sebelum entry, bukan trading berdasarkan feeling.</p>
+        
+        <ol style="padding-left:20px; margin:16px 0;">
+            <li style="margin-bottom:12px;"><strong>Buka chart di TF yang direkomendasikan</strong><br>Setiap setup card menampilkan TF rekomendasi di bagian bawah (misal: 15M–4H). Gunakan TF lebih tinggi untuk bias, TF lebih rendah untuk entry.</li>
+            <li style="margin-bottom:12px;"><strong>Cocokkan kondisi OI, CVD, dan Price satu per satu</strong><br>Baca indikator di platform kamu (TradingView, Sierra Chart, dll). Centang kondisi yang benar-benar terpenuhi — jangan centang kalau ragu.</li>
+            <li style="margin-bottom:12px;"><strong>Perhatikan progress bar</strong><br>Progress bar di bawah checklist menunjukkan berapa % kondisi yang terpenuhi. Idealnya minimal 3 dari 4 kondisi (75%) sebelum pertimbangkan entry.</li>
+            <li style="margin-bottom:12px;"><strong>Cek kotak Invalidation</strong><br>Baca kondisi invalidasi di kotak merah. Kalau ada satu saja kondisi invalidasi yang terjadi, setup gugur — reset checklist dan tunggu ulang.</li>
+            <li><strong>Checklist tersimpan otomatis</strong><br>Status centang tersimpan di browser (localStorage) per simbol per setup. Kalau kamu ganti simbol atau refresh halaman, data centang kembali sesuai simbol yang dipilih.</li>
+        </ol>
+        
+        <div class="danger">
+            <strong>🚫 Jangan skip checklist.</strong> Win rate yang tertulis di setup card adalah estimasi untuk trader yang mengikuti semua kondisi. Kalau kamu masuk tanpa semua kondisi terpenuhi, win rate aktual kamu bisa jauh lebih rendah.
         </div>
-        <div style="display:flex; align-items:flex-start; gap:12px;">
-          <span class="tag bull" style="white-space:nowrap; margin-top:2px;">Bullish</span>
-          <p style="margin:0; font-size:0.88rem;">Setup 1 (Trend), 5 (Breakout), 7 (Accumulation) — 3 setup long.</p>
+    </section>
+
+    <!-- Section 7 -->
+    <section id="sec-filter">
+        <h2>7️⃣ Menggunakan Filter Setup</h2>
+        <p>5 Filter yang tersedia:</p>
+        
+        <ul style="padding-left:20px; margin:16px 0;">
+            <li style="margin-bottom:10px;"><strong>All</strong> — Tampilkan semua 10 setup. Default saat pertama buka.</li>
+            <li style="margin-bottom:10px;"><strong>Bullish</strong> — Setup 1 (Trend), 5 (Breakout), 7 (Accumulation) — 3 setup long.</li>
+            <li style="margin-bottom:10px;"><strong>Bearish</strong> — Setup 2 (Trend), 6 (Breakdown), 8 (Distribution), 9 (Short Covering) — 4 setup short.</li>
+            <li style="margin-bottom:10px;"><strong>Reversal</strong> — Setup 3 & 4 (Divergence Reversal) dan Setup 10 (Exhaustion) — kontra-trend.</li>
+            <li><strong>High Prob</strong> — Hanya setup yang win rate aktualnya (setelah adjustment per simbol) benar-benar di atas 60%. Setup #9 (WR ~48%) tidak akan muncul di sini meski kondisi terpenuhi.</li>
+        </ul>
+        
+        <div class="tip">
+            <strong>💡 Tips penggunaan:</strong> Di sesi aktif, gunakan filter High Prob untuk hanya fokus di setup paling reliable. Setup #7 dan #8 (Accumulation/Distribution) juga tidak masuk High Prob untuk beberapa simbol karena base WR-nya hanya 52–54%.
         </div>
-        <div style="display:flex; align-items:flex-start; gap:12px;">
-          <span class="tag bear" style="white-space:nowrap; margin-top:2px;">Bearish</span>
-          <p style="margin:0; font-size:0.88rem;">Setup 2 (Trend), 6 (Breakdown), 8 (Distribution), 9 (Short Covering) — 4 setup short.</p>
+    </section>
+
+    <!-- Section 8 -->
+    <section id="sec-journal">
+        <h2>8️⃣ Export Trading Journal</h2>
+        <p>Tombol 📤 <strong>Export Journal (TXT)</strong> di filter bar akan menghasilkan file teks berisi semua kondisi checklist yang sudah kamu centang, dikelompokkan per setup.</p>
+        
+        <ol style="padding-left:20px; margin:16px 0;">
+            <li style="margin-bottom:12px;"><strong>Centang kondisi yang terpenuhi di hari/sesi trading</strong><br>Gunakan checklist di setiap setup card secara aktif selama sesi. Bisa lebih dari satu setup jika kondisi pasar memenuhi beberapa setup sekaligus.</li>
+            <li style="margin-bottom:12px;"><strong>Klik tombol Export Journal</strong><br>File <code>trading_journal_[SIMBOL]_[TIMESTAMP].txt</code> otomatis terdownload.</li>
+            <li><strong>Gunakan untuk review / backtesting</strong><br>Simpan file journal per hari. Review mingguan untuk melihat pola: setup mana yang paling sering memenuhi kondisi, dan apakah hasilnya sesuai win rate estimasi.</li>
+        </ol>
+        
+        <div class="tip">
+            <strong>ℹ️ Journal yang diekspor berisi:</strong> nama simbol, tanggal/waktu, nama setup, type (bullish/bearish/neutral), win rate, jumlah kondisi terpenuhi, dan teks masing-masing kondisi.<br><br>
+            <strong>Catatan:</strong> Export mencatat semua setup yang ada centangnya — termasuk yang sedang di-filter hide. Tidak perlu klik "All" dulu sebelum export.
         </div>
-        <div style="display:flex; align-items:flex-start; gap:12px;">
-          <span class="tag neut" style="white-space:nowrap; margin-top:2px;">Reversal</span>
-          <p style="margin:0; font-size:0.88rem;">Setup 3 & 4 (Divergence Reversal) dan Setup 10 (Exhaustion) — kontra-trend.</p>
-        </div>
-        <div style="display:flex; align-items:flex-start; gap:12px;">
-          <span style="background:rgba(139,92,246,0.3); border:1px solid #a78bfa; color:white; padding:3px 12px; border-radius:20px; font-size:0.75rem; white-space:nowrap; margin-top:2px;">High Prob</span>
-          <p style="margin:0; font-size:0.88rem;">Hanya setup yang win rate aktualnya (setelah adjustment per simbol) <strong>benar-benar di atas 60%</strong>. Setup #9 (WR ~48%) tidak akan muncul di sini meski kondisi terpenuhi.</p>
-        </div>
-      </div>
-    </div>
+    </section>
 
-    <div class="callout tip">
-      <span class="callout-icon">💡</span>
-      <div class="callout-body"><strong>Tips penggunaan:</strong> Di sesi aktif, gunakan filter <strong>High Prob</strong> untuk hanya fokus di setup paling reliable. Setup #7 dan #8 (Accumulation/Distribution) juga tidak masuk High Prob untuk beberapa simbol karena base WR-nya hanya 52–54%.</div>
-    </div>
-  </section>
+    <!-- Final Note -->
+    <section style="text-align:center; background:linear-gradient(135deg, var(--bg-secondary), var(--bg-card));">
+        <h3 style="color:var(--accent-green); margin-bottom:12px;">🎯 Prinsip Utama Penggunaan Aplikasi</h3>
+        <p style="margin-bottom:16px;">Aplikasi ini adalah <strong>alat bantu konfirmasi</strong>, bukan signal generator otomatis.</p>
+        <p style="margin-bottom:8px;">✅ OI dan CVD dari TradingView/platform kamu tetap harus kamu baca sendiri dan cocokkan dengan checklist.</p>
+        <p style="margin-bottom:8px;">✅ Win rate adalah estimasi — bukan jaminan.</p>
+        <p style="margin-bottom:20px;">✅ Selalu gunakan risk management yang ketat.</p>
+        
+        <a href="futures-oi-cvd-lab.html" class="nav-btn app" style="display:inline-flex; padding:12px 28px; font-size:1rem;">
+            🚀 Buka Aplikasi Sekarang
+        </a>
+    </section>
 
-  <div class="divider"></div>
-
-  <!-- ══════════════════════════════════════ -->
-  <!-- 08 — EXPORT JOURNAL                    -->
-  <!-- ══════════════════════════════════════ -->
-  <section class="section" id="sec-journal">
-    <div class="section-label" data-section="08">Export Journal</div>
-    <h2>Export Trading Journal</h2>
-    <p>Tombol <strong>📤 Export Journal (TXT)</strong> di filter bar akan menghasilkan file teks berisi semua kondisi checklist yang sudah kamu centang, dikelompokkan per setup.</p>
-
-    <div class="steps">
-      <div class="step">
-        <div class="step-num">1</div>
-        <div class="step-body">
-          <h3>Centang kondisi yang terpenuhi di hari/sesi trading</h3>
-          <p>Gunakan checklist di setiap setup card secara aktif selama sesi. Bisa lebih dari satu setup jika kondisi pasar memenuhi beberapa setup sekaligus.</p>
-        </div>
-      </div>
-      <div class="step">
-        <div class="step-num">2</div>
-        <div class="step-body">
-          <h3>Klik tombol Export Journal</h3>
-          <p>File <code style="font-family:var(--mono);font-size:0.8rem;color:var(--purple2)">trading_journal_[SIMBOL]_[TIMESTAMP].txt</code> otomatis terdownload.</p>
-        </div>
-      </div>
-      <div class="step">
-        <div class="step-num">3</div>
-        <div class="step-body">
-          <h3>Gunakan untuk review / backtesting</h3>
-          <p>Simpan file journal per hari. Review mingguan untuk melihat pola: setup mana yang paling sering memenuhi kondisi, dan apakah hasilnya sesuai win rate estimasi.</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="callout info">
-      <span class="callout-icon">ℹ️</span>
-      <div class="callout-body">
-        Journal yang diekspor berisi: nama simbol, tanggal/waktu, nama setup, type (bullish/bearish/neutral), win rate, jumlah kondisi terpenuhi, dan teks masing-masing kondisi.<br><br>
-        <strong>Catatan:</strong> Export mencatat <em>semua</em> setup yang ada centangnya — termasuk yang sedang di-filter hide. Tidak perlu klik "All" dulu sebelum export.
-      </div>
-    </div>
-
-    <!-- Final callout -->
-    <div class="callout danger" style="margin-top:32px;">
-      <span class="callout-icon">🎯</span>
-      <div class="callout-body">
-        <strong>Prinsip utama penggunaan aplikasi ini:</strong><br>
-        Aplikasi ini adalah <em>alat bantu konfirmasi</em>, bukan signal generator otomatis. OI dan CVD dari TradingView/platform kamu tetap harus kamu baca sendiri dan cocokkan dengan checklist. Win rate adalah estimasi — bukan jaminan. Selalu gunakan risk management yang ketat.
-      </div>
-    </div>
-  </section>
-
-</div><!-- /wrapper -->
-
-<script>
-// ── Nav dots ──
-const sections = document.querySelectorAll('.section');
-const dotsContainer = document.getElementById('navDots');
-
-sections.forEach((sec, i) => {
-  const dot = document.createElement('button');
-  dot.className = 'nav-dot';
-  dot.title = sec.querySelector('h2')?.textContent || `Section ${i+1}`;
-  dot.addEventListener('click', () => sec.scrollIntoView({ behavior:'smooth', block:'center' }));
-  dotsContainer.appendChild(dot);
-});
-
-// Highlight active dot on scroll
-const observer = new IntersectionObserver(entries => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      const idx = Array.from(sections).indexOf(entry.target);
-      document.querySelectorAll('.nav-dot').forEach((d, i) => {
-        d.classList.toggle('active', i === idx);
-      });
-    }
-  });
-}, { threshold: 0.4 });
-
-sections.forEach(s => observer.observe(s));
-</script>
+    <script>
+        // Smooth scroll for TOC links
+        document.querySelectorAll('.toc a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
 </body>
 </html>

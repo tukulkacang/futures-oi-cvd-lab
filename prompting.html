@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OI + CVD Prompt Builder — Cak To's Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c0f;
+    --bg2: #111318;
+    --bg3: #181c22;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.14);
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --accent: #00d4a0;
+    --accent2: #0ea5e9;
+    --danger: #f43f5e;
+    --warn: #f59e0b;
+    --bull: #10b981;
+    --bear: #f43f5e;
+    --neut: #f59e0b;
+    --exit: #0ea5e9;
+    --mono: 'JetBrains Mono', monospace;
+    --display: 'Syne', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── NOISE TEXTURE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  /* ── HEADER ── */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    background: rgba(10,12,15,0.92);
+    backdrop-filter: blur(12px);
+    z-index: 100;
+  }
+
+  .logo-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 12px var(--accent);
+    flex-shrink: 0;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.85); }
+  }
+
+  .logo-text {
+    font-family: var(--display);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.02em;
+  }
+
+  .logo-sub {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: var(--mono);
+    margin-left: auto;
+  }
+
+  /* ── LAYOUT ── */
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 24px 64px;
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  @media (max-width: 860px) {
+    .container { grid-template-columns: 1fr; padding: 20px 16px 48px; }
+  }
+
+  /* ── PANEL ── */
+  .panel {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .panel-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .panel-title {
+    font-family: var(--display);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .panel-body { padding: 18px; }
+
+  /* ── FORM ELEMENTS ── */
+  .field { margin-bottom: 14px; }
+
+  .field label {
+    display: block;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  select, input[type="text"] {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 8px 12px;
+    outline: none;
+    transition: border-color 0.15s;
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+  }
+
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 28px;
+  }
+
+  select:focus, input[type="text"]:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(0,212,160,0.12);
+  }
+
+  select option { background: var(--bg3); }
+
+  /* ── TAG CHIPS ── */
+  .tag-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
+  }
+
+  .tag-chip {
+    font-size: 10px;
+    font-family: var(--mono);
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s;
+    user-select: none;
+    opacity: 0.5;
+  }
+
+  .tag-chip.active { opacity: 1; }
+
+  .tag-chip.bull { border-color: var(--bull); color: var(--bull); }
+  .tag-chip.bull.active { background: rgba(16,185,129,0.12); }
+  .tag-chip.bear { border-color: var(--bear); color: var(--bear); }
+  .tag-chip.bear.active { background: rgba(244,63,94,0.12); }
+  .tag-chip.neut { border-color: var(--warn); color: var(--warn); }
+  .tag-chip.neut.active { background: rgba(245,158,11,0.12); }
+  .tag-chip.info { border-color: var(--exit); color: var(--exit); }
+  .tag-chip.info.active { background: rgba(14,165,233,0.12); }
+
+  /* ── DIVIDER ── */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 16px 0;
+  }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 18px;
+    border-radius: 6px;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #000;
+  }
+  .btn-primary:hover { background: #00bfa8; transform: translateY(-1px); }
+  .btn-primary:active { transform: translateY(0); }
+
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--text);
+  }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  .btn-success {
+    background: rgba(16,185,129,0.15);
+    border: 1px solid var(--bull);
+    color: var(--bull);
+  }
+
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* ── OUTPUT PANEL ── */
+  .output-panel {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    height: fit-content;
+    position: sticky;
+    top: 80px;
+  }
+
+  .output-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .output-meta {
+    font-size: 10px;
+    color: var(--muted);
+    font-family: var(--mono);
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .meta-badge {
+    padding: 2px 8px;
+    border-radius: 3px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    font-size: 10px;
+  }
+
+  .prompt-area {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    line-height: 1.75;
+    color: #b0bec5;
+    padding: 20px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 65vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border2) transparent;
+  }
+
+  .prompt-area::-webkit-scrollbar { width: 4px; }
+  .prompt-area::-webkit-scrollbar-track { background: transparent; }
+  .prompt-area::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  /* Syntax highlight classes */
+  .hl-section { color: var(--accent); font-weight: 700; }
+  .hl-key { color: #7dd3fc; }
+  .hl-val { color: #fbbf24; }
+  .hl-bull { color: var(--bull); }
+  .hl-bear { color: var(--bear); }
+  .hl-neut { color: var(--warn); }
+  .hl-comment { color: var(--muted); }
+
+  .output-footer {
+    padding: 12px 18px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  /* ── PARAM PREVIEW ── */
+  .param-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .param-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+  }
+
+  .param-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 3px;
+  }
+
+  .param-value {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    font-family: var(--mono);
+  }
+
+  .inverse-alert {
+    margin-top: 10px;
+    padding: 10px 14px;
+    background: rgba(245,158,11,0.08);
+    border: 1px solid rgba(245,158,11,0.25);
+    border-radius: 6px;
+    font-size: 11px;
+    color: var(--warn);
+    line-height: 1.6;
+  }
+
+  /* ── SETUP CHECKLIST ── */
+  .setup-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .setup-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.12s;
+    user-select: none;
+  }
+
+  .setup-item:hover { background: var(--bg3); }
+
+  .setup-item.selected {
+    background: var(--bg3);
+    border-color: var(--border2);
+  }
+
+  .setup-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .setup-id {
+    font-size: 10px;
+    color: var(--muted);
+    min-width: 18px;
+  }
+
+  .setup-name-text {
+    font-size: 11px;
+    color: var(--text);
+    flex: 1;
+  }
+
+  .setup-wr {
+    font-size: 10px;
+    color: var(--muted);
+    min-width: 32px;
+    text-align: right;
+  }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--accent);
+    color: #000;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 10px 18px;
+    border-radius: 6px;
+    z-index: 999;
+    transform: translateY(60px);
+    opacity: 0;
+    transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  }
+
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  /* ── SCAN LINE ANIMATION ── */
+  @keyframes scanline {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100vh); }
+  }
+
+  .scanline {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(0,212,160,0.06), transparent);
+    animation: scanline 8s linear infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── PAGE FADE IN ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .panel, .output-panel {
+    animation: fadeUp 0.4s ease both;
+  }
+
+  .output-panel { animation-delay: 0.1s; }
+</style>
+</head>
+<body>
+
+<div class="scanline"></div>
+
+<header>
+  <div class="logo-dot"></div>
+  <span class="logo-text">OI + CVD Prompt Builder</span>
+  <span class="logo-sub">Cak To's Futures Lab · v2.0</span>
+</header>
+
+<div class="container">
+
+  <!-- LEFT PANEL: CONTROLS -->
+  <div>
+    <div class="panel">
+      <div class="panel-header">
+        <div class="logo-dot" style="width:6px;height:6px;animation-delay:0.3s"></div>
+        <span class="panel-title">Konfigurasi</span>
+      </div>
+      <div class="panel-body">
+
+        <div class="field">
+          <label>Simbol Kontrak</label>
+          <select id="sym" onchange="onSymChange()">
+            <option value="6E1">6E1 — EUR/USD (Euro FX)</option>
+            <option value="6B1">6B1 — GBP/USD (British Pound)</option>
+            <option value="6A1">6A1 — AUD/USD (Australian Dollar)</option>
+            <option value="6N1">6N1 — NZD/USD (New Zealand Dollar)</option>
+            <option value="6C1">6C1 — USD/CAD (Canadian Dollar)</option>
+            <option value="6S1">6S1 — USD/CHF (Swiss Franc)</option>
+            <option value="6J1" selected>6J1 — USD/JPY (Japanese Yen)</option>
+            <option value="GC1">GC1 — XAU/USD (Gold)</option>
+            <option value="SI1">SI1 — XAG/USD (Silver)</option>
+            <option value="CL1">CL1 — CL/USD (Crude Oil WTI)</option>
+          </select>
+        </div>
+
+        <!-- Param preview cards -->
+        <div class="param-grid" id="paramGrid"></div>
+        <div id="inverseAlert"></div>
+
+        <div class="divider"></div>
+
+        <div class="field">
+          <label>Timeframe Utama</label>
+          <select id="tf">
+            <option value="5M">5 Menit</option>
+            <option value="15M">15 Menit</option>
+            <option value="30M">30 Menit</option>
+            <option value="1H" selected>1 Jam</option>
+            <option value="4H">4 Jam</option>
+            <option value="Daily">Daily</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Mode Analisa</label>
+          <select id="mode">
+            <option value="single">Single Chart</option>
+            <option value="multi">Multi Chart + Ranking</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Model AI Target</label>
+          <select id="model">
+            <option value="gemini">Gemini 2.5 Flash / 2.0 Flash</option>
+            <option value="gpt4o">GPT-4o / GPT-4o Mini</option>
+            <option value="claude">Claude Sonnet</option>
+            <option value="qwen">Qwen 2.5 VL 72B (Free)</option>
+            <option value="llama">LLaMA 4 Maverick (Free)</option>
+          </select>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="field">
+          <label>Setup yang Dianalisa</label>
+          <div class="setup-grid" id="setupGrid"></div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="field">
+          <label>Konteks Tambahan (opsional)</label>
+          <div class="tag-grid">
+            <span class="tag-chip bull" data-key="bull_div" onclick="toggleTag(this)">Long Buildup</span>
+            <span class="tag-chip bear" data-key="bear_div" onclick="toggleTag(this)">Short Buildup</span>
+            <span class="tag-chip neut" data-key="covering" onclick="toggleTag(this)">Short Covering</span>
+            <span class="tag-chip info" data-key="exhaust" onclick="toggleTag(this)">Exhaustion</span>
+            <span class="tag-chip bull" data-key="breakout" onclick="toggleTag(this)">Valid Breakout</span>
+            <span class="tag-chip bear" data-key="breakdown" onclick="toggleTag(this)">Valid Breakdown</span>
+            <span class="tag-chip neut" data-key="divergence" onclick="toggleTag(this)">CVD Divergence</span>
+            <span class="tag-chip info" data-key="news" onclick="toggleTag(this)">News Event</span>
+            <span class="tag-chip neut" data-key="session" onclick="toggleTag(this)">Sesi London/NY</span>
+            <span class="tag-chip info" data-key="htf" onclick="toggleTag(this)">HTF Konfirmasi</span>
+          </div>
+        </div>
+
+        <div class="btn-row" style="margin-top:18px">
+          <button class="btn btn-primary" onclick="generatePrompt()">
+            ▶ Generate Prompt
+          </button>
+          <button class="btn btn-ghost" onclick="resetAll()">Reset</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL: OUTPUT -->
+  <div class="output-panel">
+    <div class="output-header">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="logo-dot" style="width:6px;height:6px;background:var(--accent2);box-shadow:0 0 8px var(--accent2)"></div>
+        <span class="panel-title">Prompt Output</span>
+      </div>
+      <div class="output-meta">
+        <span id="charCount" class="meta-badge">— char</span>
+        <span id="lineCount" style="color:var(--muted)">— baris</span>
+      </div>
+    </div>
+
+    <div class="prompt-area" id="promptOut">
+<span class="hl-comment">// Pilih konfigurasi di panel kiri
+// lalu klik "Generate Prompt"
+//
+// Prompt akan muncul di sini
+// siap di-copy ke OpenRouter / API lo</span>
+    </div>
+
+    <div class="output-footer">
+      <div style="font-size:10px;color:var(--muted)" id="symLabel">—</div>
+      <div class="btn-row">
+        <button class="btn btn-ghost" id="copyBtn" onclick="copyPrompt()" style="font-size:11px;padding:7px 14px">
+          ⎘ Salin Prompt
+        </button>
+        <button class="btn btn-ghost" onclick="downloadPrompt()" style="font-size:11px;padding:7px 14px">
+          ↓ Download .txt
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast">Prompt tersalin ke clipboard!</div>
+
+<script>
+/* ── DATA ── */
+const DATA = {
+  "6E1": { name:"EUR/USD", pair:"EUR/USD", oi:5, cvd:1.5, adj:0, inverse:false, tf:"15M-4H", tick:12.50, size:125000, note:"Likuid tinggi, spread ketat, setup standar", wr:{1:72,2:68,3:60,4:62,5:70,6:68,7:54,8:52,9:48,10:78} },
+  "6B1": { name:"GBP/USD", pair:"GBP/USD", oi:6, cvd:1.6, adj:-2, inverse:false, tf:"15M-4H", tick:6.25, size:62500, note:"Volatil, spread 1-2 tick, konfirmasi lebih ketat", wr:{1:70,2:66,3:58,4:60,5:68,6:66,7:52,8:50,9:46,10:76} },
+  "6A1": { name:"AUD/USD", pair:"AUD/USD", oi:5, cvd:1.4, adj:0, inverse:false, tf:"30M-4H", tick:10.00, size:100000, note:"Sensitif komoditas dan risk sentiment", wr:{1:72,2:68,3:60,4:62,5:70,6:68,7:54,8:52,9:48,10:78} },
+  "6N1": { name:"NZD/USD", pair:"NZD/USD", oi:4, cvd:1.3, adj:-3, inverse:false, tf:"1H-4H", tick:10.00, size:100000, note:"Likuiditas tipis, konfirmasi lebih ketat", wr:{1:69,2:65,3:57,4:59,5:67,6:65,7:51,8:49,9:45,10:75} },
+  "6C1": { name:"USD/CAD", pair:"USD/CAD", oi:5, cvd:1.5, adj:-1, inverse:true, base:"CAD", forex:"USD/CAD", descNaik:"CAD menguat → USD melemah → USD/CAD TURUN", descTurun:"CAD melemah → USD menguat → USD/CAD NAIK", tf:"30M-4H", tick:10.00, size:100000, note:"Korelasi harga minyak", wr:{1:71,2:67,3:59,4:61,5:69,6:67,7:53,8:51,9:47,10:77} },
+  "6S1": { name:"USD/CHF", pair:"USD/CHF", oi:4, cvd:1.3, adj:-2, inverse:true, base:"CHF", forex:"USD/CHF", descNaik:"CHF menguat → USD melemah → USD/CHF TURUN", descTurun:"CHF melemah → USD menguat → USD/CHF NAIK", tf:"1H-4H", tick:12.50, size:125000, note:"Safe haven pair", wr:{1:70,2:66,3:58,4:60,5:68,6:66,7:52,8:50,9:46,10:76} },
+  "6J1": { name:"USD/JPY", pair:"USD/JPY", oi:6, cvd:1.7, adj:-1, inverse:true, base:"JPY", forex:"USD/JPY", descNaik:"JPY menguat → USD melemah → USD/JPY TURUN", descTurun:"JPY melemah → USD menguat → USD/JPY NAIK", tf:"1H-4H", tick:12.50, size:12500000, note:"Carry trade sensitive", wr:{1:71,2:67,3:59,4:61,5:69,6:67,7:53,8:51,9:47,10:77} },
+  "GC1": { name:"Gold XAU/USD", pair:"XAU/USD", oi:7, cvd:1.8, adj:2, inverse:false, tf:"1H-Daily", tick:10.00, size:100, note:"Volume breakout perlu >150% rata-rata", wr:{1:74,2:70,3:62,4:64,5:72,6:70,7:56,8:54,9:50,10:80} },
+  "SI1": { name:"Silver XAG/USD", pair:"XAG/USD", oi:8, cvd:2.0, adj:-3, inverse:false, tf:"4H-Daily", tick:5.00, size:5000, note:"CVD smoothing disarankan, likuiditas tipis", wr:{1:69,2:65,3:57,4:59,5:67,6:65,7:51,8:49,9:45,10:75} },
+  "CL1": { name:"Crude Oil WTI", pair:"CL/USD", oi:12, cvd:2.2, adj:0, inverse:false, tf:"15M-1H", tick:10.00, size:1000, note:"OI spike >20% saat laporan EIA/API", wr:{1:72,2:68,3:60,4:62,5:70,6:68,7:54,8:52,9:48,10:78} },
+};
+
+const SETUPS = [
+  { id:1, name:"Strong Bullish Trend",       type:"bull" },
+  { id:2, name:"Strong Bearish Trend",        type:"bear" },
+  { id:3, name:"Bullish Divergence Reversal", type:"bull" },
+  { id:4, name:"Bearish Divergence Reversal", type:"bear" },
+  { id:5, name:"Valid Breakout Long",          type:"bull" },
+  { id:6, name:"Valid Breakdown Short",        type:"bear" },
+  { id:7, name:"Accumulation Phase",           type:"neut" },
+  { id:8, name:"Distribution Phase",           type:"bear" },
+  { id:9, name:"Weak Rally / Short Covering",  type:"neut" },
+  { id:10, name:"Trend Exhaustion (EXIT)",      type:"info" },
+];
+
+const COLOR_MAP = { bull:"#10b981", bear:"#f43f5e", neut:"#f59e0b", info:"#0ea5e9" };
+const activeTags = new Set();
+const selectedSetups = new Set([1,2,3,4,5,6,7,8,9,10]);
+let lastPrompt = '';
+
+/* ── INIT ── */
+function init() {
+  renderSetupGrid();
+  onSymChange();
+}
+
+/* ── SETUP GRID ── */
+function renderSetupGrid() {
+  const sym = document.getElementById('sym').value;
+  const d = DATA[sym];
+  const g = document.getElementById('setupGrid');
+  g.innerHTML = '';
+  SETUPS.forEach(s => {
+    const sel = selectedSetups.has(s.id);
+    const wr = d.wr[s.id];
+    const el = document.createElement('div');
+    el.className = 'setup-item' + (sel ? ' selected' : '');
+    el.innerHTML = `
+      <div class="setup-dot" style="background:${COLOR_MAP[s.type]};${sel?'box-shadow:0 0 6px '+COLOR_MAP[s.type]+'66':'opacity:0.3'}"></div>
+      <span class="setup-id">#${s.id}</span>
+      <span class="setup-name-text">${s.name}</span>
+      <span class="setup-wr" style="color:${sel?COLOR_MAP[s.type]:'var(--muted)'}">${wr}%</span>
+    `;
+    el.onclick = () => {
+      if (selectedSetups.has(s.id)) selectedSetups.delete(s.id);
+      else selectedSetups.add(s.id);
+      renderSetupGrid();
+    };
+    g.appendChild(el);
+  });
+}
+
+/* ── SYM CHANGE ── */
+function onSymChange() {
+  const sym = document.getElementById('sym').value;
+  const d = DATA[sym];
+  const roc = Math.round(d.oi * 0.7);
+
+  // Param cards
+  document.getElementById('paramGrid').innerHTML = `
+    <div class="param-card"><div class="param-label">OI Spike Min</div><div class="param-value">+${d.oi}%</div></div>
+    <div class="param-card"><div class="param-label">CVD Mult</div><div class="param-value">≥${d.cvd}×</div></div>
+    <div class="param-card"><div class="param-label">OI ROC/Bar</div><div class="param-value">>${roc}%</div></div>
+    <div class="param-card"><div class="param-label">Tick Value</div><div class="param-value">$${d.tick.toFixed(2)}</div></div>
+  `;
+
+  // Inverse alert
+  const ia = document.getElementById('inverseAlert');
+  if (d.inverse) {
+    ia.innerHTML = `<div class="inverse-alert">⚠ INVERSE PAIR — ${d.base}/USD<br>${d.descNaik}<br>${d.descTurun}</div>`;
+  } else {
+    ia.innerHTML = '';
+  }
+
+  renderSetupGrid();
+  document.getElementById('symLabel').textContent = `${sym} · ${d.name} · TF: ${d.tf}`;
+}
+
+/* ── TAG TOGGLE ── */
+function toggleTag(el) {
+  const key = el.dataset.key;
+  if (activeTags.has(key)) { activeTags.delete(key); el.classList.remove('active'); }
+  else { activeTags.add(key); el.classList.add('active'); }
+}
+
+/* ── GENERATE ── */
+function generatePrompt() {
+  const sym = document.getElementById('sym').value;
+  const tf = document.getElementById('tf').value;
+  const modeVal = document.getElementById('mode').value;
+  const modelVal = document.getElementById('model').value;
+  const d = DATA[sym];
+  const roc = Math.round(d.oi * 0.7);
+  const cover = d.oi;
+  const exhaust = d.oi + 5;
+  const ids = [...selectedSetups].sort((a,b)=>a-b);
+
+  /* Model context */
+  const modelHints = {
+    gemini: "Optimized for: Gemini 2.5 Flash / 2.0 Flash (default di OpenRouter)",
+    gpt4o:  "Optimized for: GPT-4o / GPT-4o Mini",
+    claude: "Optimized for: Claude Sonnet 4.5",
+    qwen:   "Optimized for: Qwen 2.5 VL 72B Instruct (Free tier)",
+    llama:  "Optimized for: LLaMA 4 Maverick (Free tier)",
+  };
+
+  /* Inverse context */
+  let inverseCtx;
+  if (d.inverse) {
+    inverseCtx = `PAIR INVERSE — WAJIB DIPERHATIKAN:
+Kontrak futures ${sym} sebenarnya adalah ${d.base}/USD, bukan USD/${d.base}.
+- Price NAIK di chart  = ${d.descNaik}
+  → Setup BULLISH = LONG ${d.base} / ${d.forex} TURUN
+- Price TURUN di chart = ${d.descTurun}
+  → Setup BEARISH = SHORT ${d.base} / ${d.forex} NAIK
+Tulis forex_recommendation sesuai arah di ${d.forex}.
+Isi inverse_note dengan penjelasan singkat, jangan kosongkan.`;
+  } else {
+    inverseCtx = `Pair normal (non-inverse).
+BUY signal = LONG ${d.pair}.  SELL signal = SHORT ${d.pair}.
+Kosongkan field inverse_note dan forex_recommendation.`;
+  }
+
+  /* Setup blocks */
+  let setupBlock = '';
+  const setupDetail = {
+    1: `OI naik ≥3 bar (ROC>${roc}%/bar) + CVD slope positif ≥${d.cvd}× + HH/HL terbentuk + no bearish divergence
+    Entry: Pullback ke EMA saat CVD mulai naik | SL: Bawah swing low | RR min 1:2`,
+    2: `OI↑ saat price↓ = fresh shorts +${d.oi}% + CVD↓ ≥${d.cvd}× + LL/LH terbentuk
+    Entry: Dead cat bounce gagal + CVD konfirmasi turun | SL: Atas swing high | RR min 1:2.5`,
+    3: `Price LL tapi CVD HL (divergence bullish) + OI naik +${roc}% dalam 5 bar
+    + candle konfirmasi bullish + support kuat terbentuk
+    Entry: Candle konfirmasi | SL: Bawah recent low | RR min 1:3`,
+    4: `Price HH tapi CVD LH (divergence bearish) + OI turun -${roc}% dalam 3 bar
+    + resistance kuat + volume turun
+    Entry: Rejection candle + CVD drop | SL: Atas recent high | RR min 1:2`,
+    5: `Break resistance full-body bullish (body>50%) + OI spike +${d.oi}% fresh longs
+    + CVD vertikal ≥${d.cvd}× + volume >150% rata-rata
+    Entry: Retest resistance→support | SL: Bawah breakout level | Invalidasi: close kembali ke dalam range`,
+    6: `Break support full-body bearish + OI spike +${d.oi}% fresh shorts
+    + CVD waterfall ≥${d.cvd}× + tidak ada absorption
+    Entry: Pullback ke broken support | SL: Atas breakdown level | Invalidasi: close kembali ke dalam range`,
+    7: `CVD naik meski sideways + OI naik +${d.oi}% dalam konsolidasi 5-10 periode
+    + support hold + selling pressure turun
+    Entry: Support zone + CVD spike | SL: Bawah range low`,
+    8: `CVD turun meski sideways + OI naik +${d.oi}% tapi gagal breakout
+    + resistance multi-test + HH makin lemah
+    Entry: Rejection + CVD drop | SL: Atas range high`,
+    9: `Price↑ tapi OI↓ ${cover}% = short covering + CVD flat/turun + menuju resistance
+    + volume turun → RISIKO TINGGI
+    Entry: Short di resistance | SL: +0.5% atas resistance
+    ⚠ Penalti skor: -15 poin. Win rate rendah, gunakan size kecil.`,
+    10: `OI drop >${exhaust}% dari puncak + CVD divergence + volatilitas turun
+    + volume spike tanpa follow-through
+    !! PENTING: signal WAJIB = NO_ENTRY
+    Rekomendasikan exit atau kurangi posisi existing.`,
+  };
+  const typeMap = {1:"BULLISH",2:"BEARISH",3:"NEUTRAL",4:"NEUTRAL",5:"BULLISH",6:"BEARISH",7:"BULLISH",8:"BEARISH",9:"BEARISH",10:"EXIT"};
+
+  ids.forEach(id => {
+    const wr = d.wr[id];
+    const type = typeMap[id];
+    const wrLabel = id===10 ? "Akurasi exit" : "Win Rate referensi";
+    setupBlock += `\n[Setup ${id}] ${SETUPS[id-1].name} | ${type} | ${wrLabel} ~${wr}%\n`;
+    setupBlock += `    Kondisi: ${setupDetail[id]}\n`;
+  });
+
+  /* Tags */
+  let tagCtx = '';
+  const tagDesc = {
+    bull_div:  "Terlihat pola Long Buildup (OI↑ + Price↑) di chart — prioritaskan setup 1 atau 5",
+    bear_div:  "Terlihat pola Short Buildup (OI↑ + Price↓) — prioritaskan setup 2 atau 6",
+    covering:  "Ada indikasi Short Covering (OI↓ + Price↑) — waspadai setup 9, risiko tinggi",
+    exhaust:   "Potensi Exhaustion terlihat, OI drop dari puncak — periksa setup 10 (EXIT)",
+    breakout:  "Price breakout dari level resistance penting — prioritaskan setup 5",
+    breakdown: "Price breakdown dari level support penting — prioritaskan setup 6",
+    divergence:"Ada divergence antara Price dan CVD — periksa setup 3 atau 4",
+    news:      "Terdapat news event besar yang baru/akan rilis — pertimbangkan volatilitas ekstra, perlebar SL 20-30%",
+    session:   "Ini sesi London atau New York — likuiditas tinggi, sinyal lebih valid",
+    htf:       "Terdapat konfirmasi dari Higher Timeframe (Daily/Weekly) — naikkan bobot confidence +5-10%",
+  };
+  if (activeTags.size > 0) {
+    tagCtx = `\n=== KONTEKS TAMBAHAN DARI TRADER ===\n`;
+    activeTags.forEach(k => { if (tagDesc[k]) tagCtx += `» ${tagDesc[k]}\n`; });
+  }
+
+  /* Mode */
+  let modeCtx = '';
+  if (modeVal === 'multi') {
+    modeCtx = `
+=== MODE: MULTI CHART + RANKING ===
+Analisa setiap chart/screenshot yang diberikan secara independen.
+Setelah semua selesai, hitung skor dan urutkan dari tertinggi ke terendah.
+
+RUMUS SKOR:
+  base_score = (confidence × 0.6) + (win_rate × 0.4)
+  bonus: setup_id ∈ {1,2,5,6} → +5 | setup_id ∈ {3,4} dan confidence≥75 → +3
+  penalti: setup_id=9 → -15 | setup_id ∈ {7,8} → -5
+  signal=NO_ENTRY → skor = 0
+
+Kembalikan JSON array yang sudah diurutkan descending berdasarkan skor:
+[
+  { "rank": 1, "chart_label": "<nama file/chart>", "score": <float>, ...hasil lengkap... },
+  { "rank": 2, ... },
+  ...
+]
+`;
+  }
+
+  const prompt = `=== OI + CVD FUTURES LAB — SYSTEM PROMPT ===
+${modelHints[modelVal]}
+Generated: ${new Date().toLocaleString('id-ID')}
+
+Kamu adalah AI Master Analyst untuk sistem OI + CVD Futures Lab.
+Analisa screenshot chart futures yang diberikan dan kembalikan HANYA JSON valid.
+Jangan tambahkan teks, markdown, atau komentar di luar struktur JSON.
+
+=== KONTRAK: ${sym} — ${d.name} ===
+Pair           : ${d.pair}
+Timeframe      : ${tf} (utama) | Konfirmasi TF: ${d.tf}
+Tick Value     : $${d.tick.toFixed(2)} per tick
+Contract Size  : ${d.size.toLocaleString()}
+OI Spike min   : +${d.oi}% per event signifikan
+OI ROC per bar : >${roc}%
+CVD Multiplier : ≥${d.cvd}× rata-rata normal
+OI Cover level : OI turun ${cover}% dari puncak = short covering
+OI Exhaust lvl : OI turun >${exhaust}% dari puncak = exhaustion
+Win Rate adj   : ${d.adj >= 0 ? '+' : ''}${d.adj}% dari baseline (sudah termasuk dalam tabel setup)
+Catatan khusus : ${d.note}
+
+=== LOGIKA PAIR ===
+${inverseCtx}
+
+=== 4 KUADRAN OI + PRICE ===
+OI↑ + Price↑ = Fresh LONGS (Long Buildup)    → Setup 1, 5, 7
+OI↑ + Price↓ = Fresh SHORTS (Short Buildup)  → Setup 2, 6, 8
+OI↓ + Price↑ = Short Covering (Weak Rally)   → Setup 9 ⚠ RISIKO TINGGI
+OI↓ + Price↓ = Long Liquidation / Exhaustion → Setup 10 EXIT
+${modeCtx}${tagCtx}
+=== SETUP YANG DIANALISA ===
+${setupBlock}
+=== FORMAT OUTPUT JSON (STRICT) ===
+Kembalikan HANYA objek JSON berikut, tanpa teks lain:
+
+{
+  "setup_id": <integer 1-10>,
+  "market_state": "<deskripsi kondisi pasar saat ini>",
+  "setup_type": "<BULLISH | BEARISH | NEUTRAL | EXIT>",
+  "logic_match": "<penjelasan detail OI/CVD/Price yang terlihat di chart, min 2 kalimat>",
+  "checklist_match": "<kondisi setup yang sudah terpenuhi, pisah dengan semicolon>",
+  "trading_setup": {
+    "signal": "<BUY | SELL | NO_ENTRY>",
+    "entry": "<level harga entry atau zona>",
+    "sl": "<level stop loss>",
+    "tp1": "<target profit 1 — RR 1:1>",
+    "tp2": "<target profit 2 — RR 1:2>",
+    "tp3": "<target profit 3 — RR 1:3>"
+  },
+  "confidence": <integer 40-95>,
+  "risk_note": "<kondisi yang akan membatalkan atau menginvalidasi setup ini>",
+  "inverse_note": "<penjelasan arah inverse jika pair inverse, kosongkan string jika tidak>",
+  "forex_recommendation": "<rekomendasi forex equivalent jika pair inverse, kosongkan jika tidak>"
+}
+`;
+
+  lastPrompt = prompt;
+  document.getElementById('charCount').textContent = prompt.length.toLocaleString() + ' char';
+  document.getElementById('lineCount').textContent = prompt.split('\n').length + ' baris';
+
+  // Render with basic syntax highlighting
+  document.getElementById('promptOut').innerHTML = syntaxHL(prompt);
+}
+
+/* ── SYNTAX HIGHLIGHT ── */
+function syntaxHL(txt) {
+  return txt
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/(===.+?===)/g, '<span style="color:#00d4a0;font-weight:700">$1</span>')
+    .replace(/^(\[Setup \d+\].+)/gm, '<span style="color:#7dd3fc">$1</span>')
+    .replace(/(BULLISH)/g,'<span style="color:#10b981">$1</span>')
+    .replace(/(BEARISH)/g,'<span style="color:#f43f5e">$1</span>')
+    .replace(/(NEUTRAL)/g,'<span style="color:#f59e0b">$1</span>')
+    .replace(/(EXIT)/g,'<span style="color:#0ea5e9">$1</span>')
+    .replace(/(NO_ENTRY)/g,'<span style="color:#f43f5e">$1</span>')
+    .replace(/(\⚠[^\n]*)/g,'<span style="color:#f59e0b">$1</span>')
+    .replace(/(\/\/.+)/g,'<span style="color:#6b7280;font-style:italic">$1</span>');
+}
+
+/* ── COPY ── */
+function copyPrompt() {
+  if (!lastPrompt) return;
+  navigator.clipboard.writeText(lastPrompt).then(() => {
+    const t = document.getElementById('toast');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+    const btn = document.getElementById('copyBtn');
+    const orig = btn.innerHTML;
+    btn.innerHTML = '✓ Tersalin!';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
+  });
+}
+
+/* ── DOWNLOAD ── */
+function downloadPrompt() {
+  if (!lastPrompt) return;
+  const sym = document.getElementById('sym').value;
+  const tf = document.getElementById('tf').value;
+  const blob = new Blob([lastPrompt], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `prompt_${sym}_${tf}_${Date.now()}.txt`;
+  a.click();
+}
+
+/* ── RESET ── */
+function resetAll() {
+  selectedSetups.clear();
+  [1,2,3,4,5,6,7,8,9,10].forEach(i => selectedSetups.add(i));
+  activeTags.clear();
+  document.querySelectorAll('.tag-chip').forEach(el => el.classList.remove('active'));
+  document.getElementById('sym').value = '6J1';
+  document.getElementById('tf').value = '1H';
+  document.getElementById('mode').value = 'single';
+  document.getElementById('model').value = 'gemini';
+  onSymChange();
+  document.getElementById('promptOut').innerHTML = '<span style="color:var(--muted)">// Reset selesai. Klik Generate Prompt.</span>';
+  document.getElementById('charCount').textContent = '— char';
+  document.getElementById('lineCount').textContent = '— baris';
+  lastPrompt = '';
+}
+
+init();
+</script>
+</body>
+</html>

@@ -111,13 +111,6 @@ select option{background:var(--bg3)}
 .mp-gpt.active{background:#10b981;border-color:#10b981}
 .mp-gemini.active{background:#4f46e5;border-color:#4f46e5}
 
-/* ── LANG TABS ── */
-.lang-tabs{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--border2);border-radius:8px;overflow:hidden;margin-top:4px}
-.lang-tab{padding:8px 10px;text-align:center;font-size:11px;cursor:pointer;border:none;background:transparent;color:var(--muted);font-family:var(--mono);transition:all .15s;line-height:1.3;border-right:1px solid var(--border2)}
-.lang-tab:last-child{border-right:none}
-.lang-tab small{display:block;font-size:9px;opacity:.65;margin-top:1px}
-.lang-tab.active{background:var(--bg3);color:var(--accent)}
-
 /* ── BUTTONS ── */
 .btn{display:inline-flex;align-items:center;gap:5px;padding:8px 16px;border-radius:6px;font-family:var(--mono);font-size:12px;font-weight:500;cursor:pointer;border:none;transition:all .14s}
 .btn-primary{background:var(--accent);color:#000}.btn-primary:hover{background:#00bfa8;transform:translateY(-1px)}.btn-primary:active{transform:translateY(0)}
@@ -262,24 +255,6 @@ select option{background:var(--bg3)}
 
     <div class="divider"></div>
 
-    <!-- LANGUAGE TOGGLE -->
-    <div class="field">
-      <label>Bahasa Prompt</label>
-      <div class="lang-tabs">
-        <div class="lang-tab active" data-lang="en" onclick="setLang('en')">
-          🇬🇧 English
-          <small>Prompt EN → Output JSON Indo</small>
-        </div>
-        <div class="lang-tab" data-lang="id" onclick="setLang('id')">
-          🇮🇩 Indonesia
-          <small>Prompt & Output full Indo</small>
-        </div>
-      </div>
-      <div id="langDesc" style="font-size:10px;color:var(--muted);margin-top:6px;padding:6px 10px;background:var(--bg3);border-radius:5px;border:1px solid var(--border);line-height:1.5"></div>
-    </div>
-
-    <div class="divider"></div>
-
     <!-- SETUP -->
     <div class="field">
       <label>Setup yang dianalisa <span style="color:var(--muted);font-size:9px;text-transform:none;letter-spacing:0">— klik untuk toggle</span></label>
@@ -397,21 +372,9 @@ const MODE_DESC={
   multi_pair: "Upload beberapa chart dari pair dan TF yang BERBEDA-BEDA. Simbol tidak perlu dipilih — AI auto-detect dari setiap chart, terapkan parameter masing-masing, lalu ranking.",
 };
 
-let currentMode='single', selectedModel='gemini', currentLang='en';
+let currentMode='single', selectedModel='gemini';
 const activeTags=new Set(), selectedSetups=new Set([1,2,3,4,5,6,7,8,9,10]), activeTFs=new Set(['1H','4H']);
 let lastPrompt='';
-
-const LANG_DESC={
-  en:"Prompt ditulis dalam English agar AI berpikir lebih optimal → semua nilai output JSON (market_state, logic_match, risk_note, dll) ditulis dalam Bahasa Indonesia.",
-  id:"Prompt & output JSON seluruhnya dalam Bahasa Indonesia.",
-};
-
-/* ═══ LANG ═══ */
-function setLang(l){
-  currentLang=l;
-  document.querySelectorAll('.lang-tab').forEach(t=>t.classList.toggle('active',t.dataset.lang===l));
-  document.getElementById('langDesc').textContent=LANG_DESC[l];
-}
 
 /* ═══ INIT ═══ */
 function init(){
@@ -420,7 +383,6 @@ function init(){
   renderAllSymList();
   onSymChange();
   setMode('single');
-  setLang('en');
 }
 
 /* ═══ MODEL GRID ═══ */
@@ -565,106 +527,12 @@ const JSON_SINGLE=`{
   "forex_recommendation": "<isi jika inverse, kosongkan jika tidak>"
 }`;
 
-/* ═══ EN HELPERS ═══ */
-function buildInverseCtxEN(sym,d){
-  if(d.inverse) return `INVERSE PAIR — IMPORTANT:
-The ${sym} futures contract actually represents ${d.base}/USD (not USD/${d.base}).
-- Price RISES in chart  → ${d.base} strengthens → USD/${d.base} FALLS → BULLISH = LONG ${d.base}
-- Price FALLS in chart  → ${d.base} weakens     → USD/${d.base} RISES → BEARISH = SHORT ${d.base}
-Write forex_recommendation based on direction of ${d.forex}. Do not leave inverse_note empty.`;
-  return `Normal (non-inverse) pair. BUY = LONG ${d.pair}. SELL = SHORT ${d.pair}.\nLeave inverse_note and forex_recommendation as empty strings.`;
-}
-
-function buildSetupBlockEN(d,ids){
-  const roc=Math.round(d.oi*.7), cover=d.oi, exhaust=d.oi+5;
-  const detail={
-    1:`OI rises ≥3 bars (ROC>${roc}%/bar) + positive CVD slope ≥${d.cvd}× + HH/HL + no bearish div\n    Entry: Pullback to EMA + CVD rising | SL: below swing low | RR 1:2`,
-    2:`OI↑ while price↓ = fresh shorts +${d.oi}% + CVD↓ ≥${d.cvd}× + LL/LH forming\n    Entry: Failed dead cat bounce + CVD confirm | SL: above swing high | RR 1:2.5`,
-    3:`Price LL but CVD HL (bullish divergence) + OI up +${roc}% within 5 bars + strong support\n    Entry: Bullish confirmation candle | SL: below recent low | RR 1:3`,
-    4:`Price HH but CVD LH (bearish divergence) + OI down -${roc}% within 3 bars + strong resistance\n    Entry: Rejection candle + CVD drop | SL: above recent high | RR 1:2`,
-    5:`Full-body bullish breakout (body>50%) + OI spike +${d.oi}% fresh longs + CVD vertical ≥${d.cvd}× + vol>150%\n    Entry: Retest resistance→support | SL: below breakout level`,
-    6:`Full-body bearish breakdown + OI spike +${d.oi}% fresh shorts + CVD waterfall ≥${d.cvd}×\n    Entry: Pullback to broken support | SL: above breakdown level`,
-    7:`CVD rising despite sideways price + OI up +${d.oi}% in 5-10 bar consolidation + support holding\n    Entry: Support zone + CVD spike | SL: below range low`,
-    8:`CVD falling despite sideways price + OI up but failing breakout at resistance\n    Entry: Rejection + CVD drop | SL: above range high`,
-    9:`Price↑ but OI↓ ${cover}% = short covering + CVD flat/falling → HIGH RISK\n    Entry: Short at resistance | SL: +0.5% above resistance | ⚠ Score penalty -15`,
-   10:`OI drops >${exhaust}% from peak + CVD divergence + volatility declining\n    !! signal MUST = NO_ENTRY — recommend exiting existing positions`,
-  };
-  const TMAP_EN={1:"BULLISH",2:"BEARISH",3:"NEUTRAL",4:"NEUTRAL",5:"BULLISH",6:"BEARISH",7:"BULLISH",8:"BEARISH",9:"BEARISH",10:"EXIT"};
-  const NAMES_EN={1:"Strong Bullish Trend",2:"Strong Bearish Trend",3:"Bullish Divergence Reversal",4:"Bearish Divergence Reversal",5:"Valid Breakout Long",6:"Valid Breakdown Short",7:"Accumulation Phase",8:"Distribution Phase",9:"Weak Rally / Short Covering",10:"Trend Exhaustion (EXIT)"};
-  let out='';
-  ids.forEach(id=>{
-    const wr=d.wr[id], wrLabel=id===10?'Exit accuracy':'Win Rate';
-    out+=`\n[Setup ${id}] ${NAMES_EN[id]} | ${TMAP_EN[id]} | ${wrLabel} ~${wr}%\n    ${detail[id]}\n`;
-  });
-  return out;
-}
-
 /* ═══ GENERATE ═══ */
 function generatePrompt(){
   const ids=[...selectedSetups].sort((a,b)=>a-b);
   const tagCtx=buildTagCtx();
   const modelHint=MODEL_HINT[selectedModel];
-  const isEN=currentLang==='en';
-
-  // JSON field descriptions — EN mode: field hints in English, ID mode: in Bahasa
-  const F = isEN ? {
-    market_state:"<current market condition description>",
-    setup_type:"<BULLISH|BEARISH|NEUTRAL|EXIT>",
-    logic_match:"<detailed OI/CVD/Price explanation from chart, min 2 sentences — WRITE IN BAHASA INDONESIA>",
-    checklist:"<fulfilled conditions; semicolon separated — WRITE IN BAHASA INDONESIA>",
-    signal:"<BUY|SELL|NO_ENTRY>",
-    entry:"<entry price level>",sl:"<stop loss>",
-    tp1:"<TP RR 1:1>",tp2:"<TP RR 1:2>",tp3:"<TP RR 1:3>",
-    confidence:"<integer 40-95>",
-    risk_note:"<invalidation condition — WRITE IN BAHASA INDONESIA>",
-    inverse_note:"<fill if inverse pair, empty string if not — WRITE IN BAHASA INDONESIA>",
-    forex_rec:"<forex equivalent if inverse pair, empty if not — WRITE IN BAHASA INDONESIA>",
-  } : {
-    market_state:"<deskripsi kondisi pasar>",
-    setup_type:"<BULLISH|BEARISH|NEUTRAL|EXIT>",
-    logic_match:"<penjelasan OI/CVD/Price yang terlihat, min 2 kalimat>",
-    checklist:"<kondisi terpenuhi; pisah semicolon>",
-    signal:"<BUY|SELL|NO_ENTRY>",
-    entry:"<level entry>",sl:"<stop loss>",
-    tp1:"<TP RR 1:1>",tp2:"<TP RR 1:2>",tp3:"<TP RR 1:3>",
-    confidence:"<40-95>",
-    risk_note:"<kondisi invalidasi>",
-    inverse_note:"<isi jika inverse, kosongkan jika tidak>",
-    forex_rec:"<rekomendasi forex jika inverse, kosongkan jika tidak>",
-  };
-
-  const JSON_TPL=`{
-  "setup_id": <1-10>,
-  "market_state": "${F.market_state}",
-  "setup_type": "${F.setup_type}",
-  "logic_match": "${F.logic_match}",
-  "checklist_match": "${F.checklist}",
-  "trading_setup": {
-    "signal": "${F.signal}",
-    "entry": "${F.entry}",
-    "sl": "${F.sl}",
-    "tp1": "${F.tp1}",
-    "tp2": "${F.tp2}",
-    "tp3": "${F.tp3}"
-  },
-  "confidence": ${F.confidence},
-  "risk_note": "${F.risk_note}",
-  "inverse_note": "${F.inverse_note}",
-  "forex_recommendation": "${F.forex_rec}"
-}`;
-
-  // Language-specific output instruction appended to every prompt
-  const langInstruction = isEN
-    ? `\n=== OUTPUT LANGUAGE RULE ===\nWrite the prompt instructions in English (already done above).\nHOWEVER: ALL string values inside the JSON output MUST be written in Bahasa Indonesia.\nThis applies to: market_state, logic_match, checklist_match, risk_note, inverse_note, forex_recommendation.\nSignal values (BUY/SELL/NO_ENTRY) and setup_type (BULLISH/BEARISH/NEUTRAL/EXIT) remain in English.\n`
-    : `\n=== ATURAN OUTPUT ===\nSeluruh nilai string dalam JSON ditulis dalam Bahasa Indonesia.\n`;
-
-  const QUADRANT = isEN
-    ? `=== 4 OI + PRICE QUADRANTS ===
-OI↑+Price↑ = Fresh LONGS (Long Buildup)    → Setup 1, 5, 7
-OI↑+Price↓ = Fresh SHORTS (Short Buildup)  → Setup 2, 6, 8
-OI↓+Price↑ = Short Covering (Weak Rally)   → Setup 9 ⚠ HIGH RISK
-OI↓+Price↓ = Long Liquidation / Exhaustion → Setup 10 EXIT`
-    : `=== 4 KUADRAN OI + PRICE ===
+  const QUADRANT=`=== 4 KUADRAN OI + PRICE ===
 OI↑+Price↑ = Fresh LONGS (Long Buildup)   → Setup 1, 5, 7
 OI↑+Price↓ = Fresh SHORTS (Short Buildup) → Setup 2, 6, 8
 OI↓+Price↑ = Short Covering (Weak Rally)  → Setup 9 ⚠ RISIKO TINGGI
@@ -674,36 +542,7 @@ OI↓+Price↓ = Long Liquidation/Exhaustion  → Setup 10 EXIT`;
   if(currentMode==='single'){
     const sym=document.getElementById('sym').value, tf=document.getElementById('tf').value, d=DATA[sym];
     const roc=Math.round(d.oi*.7);
-
-    const prompt = isEN
-? `=== OI + CVD FUTURES LAB — SINGLE CHART ===
-Model   : ${modelHint}
-Created : ${new Date().toLocaleString('id-ID')}
-Webapp  : https://tukulkacang.github.io/futures-oi-cvd-lab
-Tutorial: https://tukulkacang.github.io/futures-oi-cvd-lab/tutorial.html
-
-You are an AI Master Analyst for the OI + CVD Futures Lab system.
-Analyze the provided futures chart screenshot and return ONLY valid JSON. No other text.
-
-=== CONTRACT: ${sym} — ${d.name} ===
-Pair          : ${d.pair}
-Timeframe     : ${tf}
-Tick Value    : $${d.tick.toFixed(2)} | Contract Size: ${d.size.toLocaleString()}
-OI Spike min  : +${d.oi}% | OI ROC: >${roc}%/bar | CVD Mult: ≥${d.cvd}×
-OI Cover      : OI drops ${d.oi}% from peak = short covering
-OI Exhaust    : OI drops >${d.oi+5}% from peak = exhaustion
-Win Rate adj  : ${d.adj>=0?'+':''}${d.adj}% (already included in setup table)
-Note          : ${d.note}
-
-=== PAIR LOGIC ===
-${buildInverseCtxEN(sym,d)}
-
-${QUADRANT}
-${tagCtx}${langInstruction}
-=== SETUPS TO ANALYZE ===${buildSetupBlockEN(d,ids)}
-=== JSON OUTPUT ===
-${JSON_TPL}`
-: `=== OI + CVD FUTURES LAB — SINGLE CHART ===
+    const prompt=`=== OI + CVD FUTURES LAB — SINGLE CHART ===
 Model  : ${modelHint}
 Dibuat : ${new Date().toLocaleString('id-ID')}
 Webapp : https://tukulkacang.github.io/futures-oi-cvd-lab
@@ -726,11 +565,11 @@ Catatan       : ${d.note}
 ${buildInverseCtx(sym,d)}
 
 ${QUADRANT}
-${tagCtx}${langInstruction}
+${tagCtx}
 === SETUP YANG DIANALISA ===${buildSetupBlock(d,ids)}
 === OUTPUT JSON ===
-${JSON_TPL}`;
-    finalizePrompt(prompt,`${sym} · Single · ${tf} · ${isEN?'EN→ID':'ID'}`);
+${JSON_SINGLE}`;
+    finalizePrompt(prompt,`${sym} · Single · ${tf}`);
   }
 
   /* ─── MULTI TF ─── */
@@ -738,50 +577,7 @@ ${JSON_TPL}`;
     const sym=document.getElementById('sym').value, d=DATA[sym];
     const roc=Math.round(d.oi*.7);
     const tfs=[...activeTFs].join(', ')||'1H, 4H';
-    const mtfRules = isEN
-      ? `=== MULTI-TIMEFRAME RULES ===
-1. Analyze each TF independently (setup_id, logic, confidence, etc.).
-2. HTF (4H/Daily) = primary bias. LTF (1H/15M) = entry timing.
-3. Setup is VALID only if ≥2 TFs AGREE on direction.
-4. Conflicting TFs → max confidence 55, signal = NO_ENTRY.
-5. Include "multi_tf_summary" at the end of the JSON.`
-      : `=== ATURAN MULTI-TF ===
-1. Analisa setiap TF secara mandiri (setup_id, logic, confidence, dll).
-2. HTF (4H/Daily) = bias utama. LTF (1H/15M) = timing entry.
-3. Setup VALID hanya jika ≥2 TF SEPAKAT arahnya.
-4. TF bertentangan → confidence max 55, signal = NO_ENTRY.
-5. Sertakan "multi_tf_summary" di akhir JSON.`;
-
-    const prompt = isEN
-? `=== OI + CVD FUTURES LAB — MULTI TIMEFRAME ===
-Model   : ${modelHint}
-Created : ${new Date().toLocaleString('id-ID')}
-Webapp  : https://tukulkacang.github.io/futures-oi-cvd-lab
-Tutorial: https://tukulkacang.github.io/futures-oi-cvd-lab/tutorial.html
-
-You are an AI Master Analyst for the OI + CVD Futures Lab system.
-You will receive MULTIPLE charts from the SAME pair (${sym} — ${d.name}),
-different timeframes: ${tfs}.
-Analyze each TF independently, then provide a multi-TF conclusion.
-Return ONLY valid JSON. No other text.
-
-=== CONTRACT: ${sym} — ${d.name} ===
-Pair          : ${d.pair}
-Timeframes    : ${tfs}
-Tick Value    : $${d.tick.toFixed(2)} | Contract Size: ${d.size.toLocaleString()}
-OI Spike min  : +${d.oi}% | OI ROC: >${roc}%/bar | CVD Mult: ≥${d.cvd}×
-OI Cover      : OI drops ${d.oi}% = short covering
-OI Exhaust    : OI drops >${d.oi+5}% from peak = exhaustion
-Note          : ${d.note}
-
-=== PAIR LOGIC ===
-${buildInverseCtxEN(sym,d)}
-
-${QUADRANT}
-${tagCtx}${langInstruction}
-=== SETUPS TO ANALYZE ===${buildSetupBlockEN(d,ids)}
-${mtfRules}`
-: `=== OI + CVD FUTURES LAB — MULTI TIMEFRAME ===
+    const prompt=`=== OI + CVD FUTURES LAB — MULTI TIMEFRAME ===
 Model  : ${modelHint}
 Dibuat : ${new Date().toLocaleString('id-ID')}
 Webapp : https://tukulkacang.github.io/futures-oi-cvd-lab
@@ -806,9 +602,14 @@ Catatan       : ${d.note}
 ${buildInverseCtx(sym,d)}
 
 ${QUADRANT}
-${tagCtx}${langInstruction}
+${tagCtx}
 === SETUP YANG DIANALISA ===${buildSetupBlock(d,ids)}
-${mtfRules}`;
+=== ATURAN MULTI-TF ===
+1. Analisa setiap TF secara mandiri (setup_id, logic, confidence, dll).
+2. HTF (4H/Daily) = bias utama. LTF (1H/15M) = timing entry.
+3. Setup VALID hanya jika ≥2 TF SEPAKAT arahnya.
+4. TF bertentangan → confidence max 55, signal = NO_ENTRY atau WAIT.
+5. Sertakan "multi_tf_summary" di akhir JSON.
 
 === OUTPUT JSON ===
 {
@@ -830,7 +631,7 @@ ${mtfRules}`;
     "reasoning": "<alasan singkat aligned atau conflicting>"
   }
 }`;
-    finalizePrompt(prompt,`${sym} · Multi TF · ${tfs} · ${isEN?'EN→ID':'ID'}`);
+    finalizePrompt(prompt,`${sym} · Multi TF · ${tfs}`);
   }
 
   /* ─── MULTI PAIR ─── */
@@ -838,76 +639,13 @@ ${mtfRules}`;
     let allParamsBlock='';
     Object.entries(DATA).forEach(([sym,d])=>{
       const roc=Math.round(d.oi*.7);
-      if(isEN){
-        allParamsBlock+=`\n${sym} (${d.name}):
-  OI Spike: +${d.oi}% | ROC: >${roc}%/bar | CVD: ≥${d.cvd}× | WinAdj: ${d.adj>=0?'+':''}${d.adj}%
-  Inverse : ${d.inverse?`YES — ${d.base}/USD | Price↑: ${d.descNaik} | Price↓: ${d.descTurun}`:'No'}
-  Note    : ${d.note}\n`;
-      } else {
-        allParamsBlock+=`\n${sym} (${d.name}):
+      allParamsBlock+=`\n${sym} (${d.name}):
   OI Spike: +${d.oi}% | ROC: >${roc}%/bar | CVD: ≥${d.cvd}× | WinAdj: ${d.adj>=0?'+':''}${d.adj}%
   Inverse : ${d.inverse?`YA — ${d.base}/USD | Price↑: ${d.descNaik} | Price↓: ${d.descTurun}`:'Tidak'}
   Catatan : ${d.note}\n`;
-      }
     });
 
-    const prompt = isEN
-? `=== OI + CVD FUTURES LAB — MULTI PAIR + RANKING ===
-Model   : ${modelHint}
-Created : ${new Date().toLocaleString('id-ID')}
-Webapp  : https://tukulkacang.github.io/futures-oi-cvd-lab
-Tutorial: https://tukulkacang.github.io/futures-oi-cvd-lab/tutorial.html
-
-You are an AI Master Analyst for the OI + CVD Futures Lab system.
-You will receive MULTIPLE charts from DIFFERENT pairs and timeframes.
-
-MANDATORY STEPS PER CHART:
-1. DETECT symbol from chart label (e.g. "6J1!", "Euro FX Futures", "British Pound Futures", "GC1!", etc.)
-2. DETECT timeframe from TF label on chart (1h, 4h, D, etc.)
-3. APPLY parameters matching the detected symbol from the table below
-4. ANALYZE OI + CVD + Price using 4 quadrants and 10 setups
-5. CALCULATE score = (confidence×0.6)+(win_rate×0.4) + bonus/penalty
-6. RANK all results from highest to lowest score
-Return ONLY valid JSON array. No other text.
-
-=== ALL CONTRACT PARAMETERS ===${allParamsBlock}
-${QUADRANT}
-${tagCtx}${langInstruction}
-=== SETUP REFERENCE (10 Setups, win rate adjusted per symbol) ===${buildSetupBlockEN(DATA['6E1'],ids)}
-=== SCORE FORMULA ===
-base    = (confidence × 0.6) + (win_rate × 0.4)
-bonus   : setup ∈ {1,2,5,6} → +5 | setup ∈ {3,4} and confidence≥75 → +3
-penalty : setup=9 → -15 | setup ∈ {7,8} → -5
-signal=NO_ENTRY → score = 0
-
-=== JSON ARRAY OUTPUT (sorted descending by score) ===
-[
-  {
-    "rank": 1,
-    "detected_symbol": "<symbol read from chart>",
-    "detected_tf": "<TF read from chart>",
-    "score": <float>,
-    "setup_id": <1-10>,
-    "market_state": "<current market condition — IN BAHASA INDONESIA>",
-    "setup_type": "<BULLISH|BEARISH|NEUTRAL|EXIT>",
-    "logic_match": "<OI/CVD/Price explanation, min 2 sentences — IN BAHASA INDONESIA>",
-    "checklist_match": "<fulfilled conditions; semicolon separated — IN BAHASA INDONESIA>",
-    "trading_setup": {
-      "signal": "<BUY|SELL|NO_ENTRY>",
-      "entry": "<entry level>",
-      "sl": "<stop loss>",
-      "tp1": "<TP RR 1:1>", "tp2": "<TP RR 1:2>", "tp3": "<TP RR 1:3>"
-    },
-    "confidence": <40-95>,
-    "win_rate_used": <integer>,
-    "risk_note": "<invalidation condition — IN BAHASA INDONESIA>",
-    "inverse_note": "<fill if inverse pair — IN BAHASA INDONESIA>",
-    "forex_recommendation": "<forex recommendation if inverse — IN BAHASA INDONESIA>"
-  },
-  { "rank": 2, "..." },
-  ...
-]`
-: `=== OI + CVD FUTURES LAB — MULTI PAIR + RANKING ===
+    const prompt=`=== OI + CVD FUTURES LAB — MULTI PAIR + RANKING ===
 Model  : ${modelHint}
 Dibuat : ${new Date().toLocaleString('id-ID')}
 Webapp : https://tukulkacang.github.io/futures-oi-cvd-lab
@@ -927,7 +665,7 @@ Kembalikan HANYA JSON array valid, tanpa teks lain.
 
 === TABEL PARAMETER SEMUA KONTRAK ===${allParamsBlock}
 ${QUADRANT}
-${tagCtx}${langInstruction}
+${tagCtx}
 === SETUP REFERENSI (10 Setup, win rate menyesuaikan adj per simbol) ===${buildSetupBlock(DATA['6E1'],ids)}
 === RUMUS SKOR ===
 base    = (confidence × 0.6) + (win_rate × 0.4)
@@ -962,7 +700,7 @@ signal=NO_ENTRY → skor = 0
   { "rank": 2, "..." },
   ...
 ]`;
-    finalizePrompt(prompt,`Multi Pair · Auto-detect · Ranking · ${isEN?'EN→ID':'ID'}`);
+    finalizePrompt(prompt,`Multi Pair · Auto-detect · Ranking`);
   }
 }
 
@@ -1017,7 +755,7 @@ function resetAll(){
   selectedModel='gemini';
   document.getElementById('sym').value='6J1';
   document.getElementById('tf').value='1H';
-  setMode('single'); onSymChange(); renderModelGrid(); setLang('en');
+  setMode('single'); onSymChange(); renderModelGrid();
   document.getElementById('promptOut').innerHTML='<span style="color:var(--muted)">// Reset. Klik ▶ Generate Prompt.</span>';
   document.getElementById('charCount').textContent='— char';
   document.getElementById('lineCount').textContent='— baris';

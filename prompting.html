@@ -135,6 +135,38 @@ select option{background:var(--bg3)}
 .output-ft{padding:10px 16px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px}
 
 /* ── TOAST ── */
+/* ── RESULT CARDS ── */
+.rc{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:12px}
+.rc.rc-top{border:2px solid var(--accent)}
+.rc-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.rc-medal{font-size:20px;width:28px;text-align:center;flex-shrink:0}
+.rc-name{font-size:14px;font-weight:600;color:var(--text)}
+.rc-sub{font-size:11px;color:var(--muted);margin-top:1px}
+.rc-pill{font-size:11px;padding:3px 12px;border-radius:20px;font-weight:600;margin-left:auto;flex-shrink:0}
+.rc-pill.buy{background:rgba(16,185,129,.15);color:#10b981;border:1px solid #10b981}
+.rc-pill.sell{background:rgba(244,63,94,.15);color:#f43f5e;border:1px solid #f43f5e}
+.rc-pill.wait{background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid #f59e0b}
+.rc-aligned{font-size:10px;padding:2px 7px;border-radius:3px;background:rgba(0,212,160,.12);color:var(--accent);margin-left:6px}
+.rc-aligned.no{background:rgba(244,63,94,.12);color:var(--bear)}
+.rc-tfs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.rc-tf{font-size:11px;padding:3px 10px;border-radius:5px;background:var(--bg3);border:1px solid var(--border);color:var(--muted)}
+.rc-tf strong{color:var(--text)}
+.rc-section{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:7px}
+.rc-prices{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:7px;margin-bottom:12px}
+.rc-price{background:var(--bg3);border-radius:6px;padding:7px 10px}
+.rc-plabel{font-size:9px;color:var(--muted);margin-bottom:2px;text-transform:uppercase;letter-spacing:.05em}
+.rc-pval{font-size:13px;font-weight:600}
+.rc-pval.e{color:var(--accent2)}
+.rc-pval.s{color:var(--bear)}
+.rc-pval.t{color:var(--bull)}
+.rc-conf-bar{height:4px;border-radius:2px;background:var(--bg3);margin:4px 0 10px}
+.rc-conf-fill{height:4px;border-radius:2px;background:var(--accent)}
+.rc-reason{font-size:12px;color:var(--muted);line-height:1.6;padding:8px 12px;background:var(--bg3);border-radius:6px;border-left:2px solid var(--accent);border-top-left-radius:0;border-bottom-left-radius:0;margin-bottom:8px}
+.rc-warn{font-size:11px;color:#f59e0b;padding:7px 10px;background:rgba(245,158,11,.08);border-radius:6px;line-height:1.5;margin-bottom:6px}
+.rc-forex{font-size:12px;font-weight:600;color:var(--accent2);padding:6px 10px;background:rgba(14,165,233,.08);border-radius:6px}
+.rc-divider{height:1px;background:var(--border);margin:10px 0}
+.rc-single-info{font-size:11px;color:var(--muted);padding:6px 10px;background:var(--bg3);border-radius:6px;margin-bottom:8px}
+
 .toast{position:fixed;bottom:20px;right:20px;background:var(--accent);color:#000;font-family:var(--mono);font-size:12px;font-weight:500;padding:9px 16px;border-radius:6px;z-index:999;transform:translateY(60px);opacity:0;transition:all .25s cubic-bezier(.34,1.56,.64,1)}
 .toast.show{transform:translateY(0);opacity:1}
 .scanline{position:fixed;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(0,212,160,.04),transparent);animation:scan 8s linear infinite;pointer-events:none;z-index:0}
@@ -337,7 +369,66 @@ select option{background:var(--bg3)}
   </div>
 </div>
 
+<!-- ═══ PASTE + RENDER ZONE ═══ -->
+
+<!-- ═══ PASTE + RENDER ZONE ═══ -->
+<div style="max-width:1200px;margin:0 auto;padding:0 18px 24px;position:relative;z-index:1">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+    <div class="panel-hd">
+      <div class="logo-dot" style="width:6px;height:6px;background:#f59e0b;box-shadow:0 0 6px #f59e0b;animation-delay:.6s"></div>
+      <span class="panel-title">Paste &amp; Render Hasil JSON dari Claude</span>
+      <span style="font-size:10px;color:var(--muted);margin-left:8px">— paste output Claude, klik Render</span>
+    </div>
+    <div style="padding:14px 16px;display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+      <textarea id="jsonInput" placeholder="Paste JSON output dari Claude di sini..." style="flex:1;min-width:200px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:11px;padding:10px 12px;resize:vertical;min-height:90px;outline:none;line-height:1.6"></textarea>
+      <button class="btn btn-primary" onclick="renderResult()" style="flex-shrink:0;padding:10px 20px">&#9654; Render</button>
+    </div>
+    <div id="parseError" style="display:none;padding:0 16px 12px;font-size:11px;color:var(--bear)"></div>
+  </div>
 </div>
+
+<!-- ═══ RESULT CARDS ═══ -->
+<div id="resultSection" style="display:none;max-width:1200px;margin:0 auto;padding:0 18px 60px;position:relative;z-index:1">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="logo-dot" style="width:7px;height:7px;background:#f59e0b;box-shadow:0 0 8px #f59e0b"></div>
+      <span style="font-family:var(--display);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Hasil Analisa AI</span>
+    </div>
+    <button class="btn btn-ghost" onclick="clearResult()" style="font-size:11px;padding:6px 13px">&#x2715; Hapus Hasil</button>
+  </div>
+  <div id="resultCards"></div>
+</div>
+
+<div style="max-width:1200px;margin:0 auto;padding:0 18px 24px;position:relative;z-index:1">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+    <div class="panel-hd">
+      <div class="logo-dot" style="width:6px;height:6px;background:#f59e0b;box-shadow:0 0 6px #f59e0b;animation-delay:.6s"></div>
+      <span class="panel-title">Paste &amp; Render Hasil JSON dari Claude</span>
+      <span style="font-size:10px;color:var(--muted);margin-left:8px">— copy output Claude, paste di sini, klik Render</span>
+    </div>
+    <div style="padding:14px 16px;display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap">
+      <textarea id="jsonInput" placeholder='Paste JSON output dari Claude di sini...
+Format multi pair: [{...},{...}]
+Format multi TF  : {"analyses":[...],"multi_tf_summary":{...}}'
+        style="flex:1;min-width:200px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:11px;padding:10px 12px;resize:vertical;min-height:90px;outline:none;line-height:1.6"></textarea>
+      <button class="btn btn-primary" onclick="renderResult()" style="flex-shrink:0;padding:10px 20px;align-self:flex-end">▶ Render</button>
+    </div>
+    <div id="parseError" style="display:none;padding:0 16px 12px;font-size:11px;color:var(--bear)"></div>
+  </div>
+</div>
+
+<!-- ═══ RESULT CARDS ═══ -->
+<div id="resultSection" style="display:none;max-width:1200px;margin:0 auto;padding:0 18px 60px;position:relative;z-index:1">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="logo-dot" style="width:7px;height:7px;background:#f59e0b;box-shadow:0 0 8px #f59e0b"></div>
+      <span style="font-family:var(--display);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Hasil Analisa AI</span>
+    </div>
+    <button class="btn btn-ghost" onclick="clearResult()" style="font-size:11px;padding:6px 13px">✕ Hapus Hasil</button>
+  </div>
+  <div id="resultCards"></div>
+</div>
+
 <div class="toast" id="toast">✓ Prompt tersalin ke clipboard!</div>
 
 <script>
@@ -1050,6 +1141,138 @@ function resetAll(){
   document.getElementById('charCount').textContent='— char';
   document.getElementById('lineCount').textContent='— baris';
   lastPrompt='';
+}
+
+/* ═══ RESULT RENDERER ═══ */
+const MEDALS = ['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣'];
+
+function renderResult() {
+  const raw = document.getElementById('jsonInput').value.trim();
+  const errEl = document.getElementById('parseError');
+  errEl.style.display = 'none';
+  if (!raw) { errEl.textContent = 'Belum ada JSON yang di-paste.'; errEl.style.display='block'; return; }
+
+  let data;
+  try { data = JSON.parse(raw); } catch(e) {
+    errEl.textContent = 'JSON tidak valid: ' + e.message;
+    errEl.style.display = 'block'; return;
+  }
+
+  // Normalise: bisa array (multi pair) atau object single/multi-tf
+  let items = [];
+  if (Array.isArray(data)) {
+    // multi pair format
+    items = data;
+  } else if (data.analyses) {
+    // single pair multi-tf format
+    items = [{ rank:1, detected_symbol: data.analyses[0]?.timeframe ? 'Chart' : 'Chart',
+      timeframes_analyzed: data.analyses.map(a=>a.timeframe),
+      score: data.multi_tf_summary?.confidence || 0,
+      is_grouped: true,
+      per_tf: data.analyses,
+      multi_tf_summary: data.multi_tf_summary,
+      risk_note: data.analyses[0]?.risk_note || '',
+      inverse_note: data.multi_tf_summary?.inverse_note || '',
+      forex_recommendation: data.multi_tf_summary?.forex_recommendation || '',
+    }];
+  } else if (data.setup_id) {
+    // single chart format
+    items = [{ rank:1, detected_symbol:'Chart', timeframes_analyzed:['—'],
+      score: data.confidence, is_grouped:false,
+      per_tf:[{ timeframe:'—', setup_id:data.setup_id, market_state:data.market_state,
+        setup_type:data.setup_type, logic_match:data.logic_match,
+        checklist_match:data.checklist_match, confidence:data.confidence }],
+      multi_tf_summary:{ bias:data.setup_type, aligned:true,
+        final_signal:data.trading_setup?.signal,
+        entry:data.trading_setup?.entry, sl:data.trading_setup?.sl,
+        tp1:data.trading_setup?.tp1, tp2:data.trading_setup?.tp2, tp3:data.trading_setup?.tp3,
+        confidence:data.confidence, reasoning:data.logic_match },
+      risk_note:data.risk_note,
+      inverse_note:data.inverse_note,
+      forex_recommendation:data.forex_recommendation,
+    }];
+  }
+
+  const container = document.getElementById('resultCards');
+  container.innerHTML = '';
+
+  items.forEach((item, idx) => {
+    const summary = item.multi_tf_summary || {};
+    const signal = summary.final_signal || item.trading_setup?.signal || 'NO_ENTRY';
+    const conf = summary.confidence || item.confidence || 0;
+    const tfs = item.timeframes_analyzed || ['—'];
+    const isTop = idx === 0;
+
+    const pillCls = signal==='BUY'?'buy':signal==='SELL'?'sell':'wait';
+    const pillLabel = signal==='BUY'?'▲ BUY':signal==='SELL'?'▼ SELL':'⊘ WAIT';
+    const medal = MEDALS[idx] || `#${idx+1}`;
+    const aligned = summary.aligned !== false;
+
+    // per_tf rows
+    let tfRows = '';
+    if (item.per_tf && item.per_tf.length) {
+      tfRows = item.per_tf.map(tf =>
+        `<div class="rc-tf"><strong>${tf.timeframe}</strong> &nbsp; ${tf.market_state||''} &nbsp; <span style="color:var(--accent)">Setup #${tf.setup_id}</span> &nbsp; <span style="opacity:.7">${tf.confidence||'—'}%</span></div>`
+      ).join('');
+    }
+
+    // price boxes
+    const prices = [
+      {label:'Entry', val:summary.entry||'—', cls:'e'},
+      {label:'Stop Loss', val:summary.sl||'—', cls:'s'},
+      {label:'TP 1', val:summary.tp1||'—', cls:'t'},
+      {label:'TP 2', val:summary.tp2||'—', cls:'t'},
+      {label:'TP 3', val:summary.tp3||'—', cls:'t'},
+    ];
+    const priceBoxes = prices.map(p=>
+      `<div class="rc-price"><div class="rc-plabel">${p.label}</div><div class="rc-pval ${p.cls}">${p.val}</div></div>`
+    ).join('');
+
+    const forexHtml = item.forex_recommendation
+      ? `<div class="rc-forex">Rekomendasi Forex: ${item.forex_recommendation}</div>` : '';
+    const inverseHtml = item.inverse_note && item.inverse_note !== 'Tidak ada (Direct Pair)'
+      ? `<div class="rc-single-info">⇄ ${item.inverse_note}</div>` : '';
+    const warnHtml = item.risk_note
+      ? `<div class="rc-warn">⚠ ${item.risk_note}</div>` : '';
+
+    const scoreStr = typeof item.score === 'number' ? item.score.toFixed(1) : conf;
+
+    const card = `
+<div class="rc ${isTop?'rc-top':''}">
+  <div class="rc-head">
+    <div class="rc-medal">${medal}</div>
+    <div>
+      <div class="rc-name">${item.detected_symbol||'Chart'} <span class="rc-aligned ${aligned?'':'no'}">${aligned?'TF Aligned':'TF Conflict'}</span></div>
+      <div class="rc-sub">TF: ${tfs.join(' + ')} &nbsp;|&nbsp; Skor: ${scoreStr}</div>
+    </div>
+    <span class="rc-pill ${pillCls}">${pillLabel}</span>
+  </div>
+
+  ${item.per_tf && item.per_tf.length > 1 ? `<div class="rc-section">Kondisi per timeframe</div><div class="rc-tfs">${tfRows}</div><div class="rc-divider"></div>` : item.per_tf?.length===1 ? `<div class="rc-tfs">${tfRows}</div><div class="rc-divider"></div>` : ''}
+
+  <div class="rc-section">Level trading</div>
+  <div class="rc-prices">${priceBoxes}</div>
+
+  <div class="rc-section">Confidence AI: ${conf}%</div>
+  <div class="rc-conf-bar"><div class="rc-conf-fill" style="width:${conf}%"></div></div>
+
+  ${summary.reasoning ? `<div class="rc-reason">${summary.reasoning}</div>` : ''}
+  ${inverseHtml}
+  ${forexHtml}
+  ${warnHtml}
+</div>`;
+    container.innerHTML += card;
+  });
+
+  document.getElementById('resultSection').style.display = 'block';
+  document.getElementById('resultSection').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function clearResult() {
+  document.getElementById('resultSection').style.display = 'none';
+  document.getElementById('resultCards').innerHTML = '';
+  document.getElementById('jsonInput').value = '';
+  document.getElementById('parseError').style.display = 'none';
 }
 
 init();

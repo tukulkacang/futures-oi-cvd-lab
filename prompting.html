@@ -364,6 +364,7 @@ select option{background:var(--bg3)}
     <div style="font-size:10px;color:var(--muted)" id="symLabel">—</div>
     <div class="btn-row">
       <button class="btn btn-ghost" id="copyBtn" onclick="copyPrompt()" style="font-size:11px;padding:6px 13px">⎘ Salin</button>
+      <button class="btn btn-ghost" id="copyCleanBtn" onclick="copyClean()" style="font-size:11px;padding:6px 13px;border-color:rgba(0,212,160,.4);color:var(--accent)" title="Salin tanpa header — langsung dari instruksi AI">⎘ Salin Bersih</button>
       <button class="btn btn-ghost" onclick="downloadPrompt()" style="font-size:11px;padding:6px 13px">↓ Download</button>
     </div>
   </div>
@@ -1087,6 +1088,39 @@ function copyPrompt(){
     const btn=document.getElementById('copyBtn'), ori=btn.innerHTML;
     btn.innerHTML='✓ Tersalin!'; btn.style.color='var(--accent)';
     setTimeout(()=>{btn.innerHTML=ori;btn.style.color='';},2000);
+  });
+}
+
+function copyClean(){
+  if(!lastPrompt) return;
+  // Hapus baris header: === OI + CVD..., Model :, Created :, Webapp :, Tutorial:
+  const lines = lastPrompt.split('\n');
+  const skipPatterns = [
+    /^=== OI \+ CVD FUTURES LAB/,
+    /^Model\s*:/,
+    /^Created\s*:/,
+    /^Dibuat\s*:/,
+    /^Webapp\s*:/,
+    /^Tutorial\s*:/,
+  ];
+  // Cari baris pertama yang bukan header dan bukan kosong
+  let startIdx = 0;
+  for(let i=0; i<lines.length; i++){
+    const line = lines[i].trim();
+    if(line === '') continue;
+    if(skipPatterns.some(p => p.test(line))) continue;
+    startIdx = i;
+    break;
+  }
+  const cleanPrompt = lines.slice(startIdx).join('\n').trimStart();
+  navigator.clipboard.writeText(cleanPrompt).then(()=>{
+    const t=document.getElementById('toast');
+    t.textContent='✓ Prompt bersih tersalin!';
+    t.classList.add('show');
+    setTimeout(()=>{ t.classList.remove('show'); t.textContent='✓ Prompt tersalin ke clipboard!'; },2200);
+    const btn=document.getElementById('copyCleanBtn'), ori=btn.innerHTML;
+    btn.innerHTML='✓ Tersalin!'; btn.style.color='var(--accent)';
+    setTimeout(()=>{btn.innerHTML=ori;btn.style.color='var(--accent)';},2000);
   });
 }
 function downloadPrompt(){

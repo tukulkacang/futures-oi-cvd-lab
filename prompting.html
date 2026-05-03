@@ -369,36 +369,6 @@ select option{background:var(--bg3)}
   </div>
 </div>
 
-<!-- ═══ PASTE + RENDER ZONE ═══ -->
-
-<!-- ═══ PASTE + RENDER ZONE ═══ -->
-<div style="max-width:1200px;margin:0 auto;padding:0 18px 24px;position:relative;z-index:1">
-  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden">
-    <div class="panel-hd">
-      <div class="logo-dot" style="width:6px;height:6px;background:#f59e0b;box-shadow:0 0 6px #f59e0b;animation-delay:.6s"></div>
-      <span class="panel-title">Paste &amp; Render Hasil JSON dari Claude</span>
-      <span style="font-size:10px;color:var(--muted);margin-left:8px">— paste output Claude, klik Render</span>
-    </div>
-    <div style="padding:14px 16px;display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
-      <textarea id="jsonInput" placeholder="Paste JSON output dari Claude di sini..." style="flex:1;min-width:200px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:11px;padding:10px 12px;resize:vertical;min-height:90px;outline:none;line-height:1.6"></textarea>
-      <button class="btn btn-primary" onclick="renderResult()" style="flex-shrink:0;padding:10px 20px">&#9654; Render</button>
-    </div>
-    <div id="parseError" style="display:none;padding:0 16px 12px;font-size:11px;color:var(--bear)"></div>
-  </div>
-</div>
-
-<!-- ═══ RESULT CARDS ═══ -->
-<div id="resultSection" style="display:none;max-width:1200px;margin:0 auto;padding:0 18px 60px;position:relative;z-index:1">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
-    <div style="display:flex;align-items:center;gap:10px">
-      <div class="logo-dot" style="width:7px;height:7px;background:#f59e0b;box-shadow:0 0 8px #f59e0b"></div>
-      <span style="font-family:var(--display);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Hasil Analisa AI</span>
-    </div>
-    <button class="btn btn-ghost" onclick="clearResult()" style="font-size:11px;padding:6px 13px">&#x2715; Hapus Hasil</button>
-  </div>
-  <div id="resultCards"></div>
-</div>
-
 <div style="max-width:1200px;margin:0 auto;padding:0 18px 24px;position:relative;z-index:1">
   <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden">
     <div class="panel-hd">

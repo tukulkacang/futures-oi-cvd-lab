@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tutorial — OI + CVD Prompt Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0c0f;--bg2:#111318;--bg3:#181c22;--bg4:#1e2229;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --text:#e8eaf0;--muted:#6b7280;--soft:#9ca3af;
+  --accent:#00d4a0;--accent2:#0ea5e9;--warn:#f59e0b;
+  --bull:#10b981;--bear:#f43f5e;
+  --mono:'JetBrains Mono',monospace;--display:'Syne',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.7;min-height:100vh}
+
+/* ── NOISE ── */
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:0.5}
+
+/* ── SCANLINE ── */
+.scanline{position:fixed;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,212,160,0.04),transparent);animation:scan 10s linear infinite;pointer-events:none;z-index:0}
+@keyframes scan{0%{transform:translateY(0)}100%{transform:translateY(100vh)}}
+
+/* ── HEADER ── */
+header{border-bottom:1px solid var(--border);padding:16px 28px;display:flex;align-items:center;gap:14px;position:sticky;top:0;background:rgba(10,12,15,0.95);backdrop-filter:blur(16px);z-index:100;flex-wrap:wrap;gap:10px}
+.logo-dot{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent);flex-shrink:0;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.75)}}
+.logo-text{font-family:var(--display);font-size:14px;font-weight:700;letter-spacing:.02em}
+.nav-links{margin-left:auto;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.nav-link{font-size:11px;color:var(--muted);text-decoration:none;padding:5px 11px;border:1px solid var(--border2);border-radius:5px;transition:all .15s;white-space:nowrap}
+.nav-link:hover{color:var(--accent);border-color:var(--accent);background:rgba(0,212,160,.05)}
+.nav-link.primary{color:var(--accent);border-color:rgba(0,212,160,.3);background:rgba(0,212,160,.06)}
+.nav-link.primary:hover{background:rgba(0,212,160,.13)}
+
+/* ── HERO ── */
+.hero{max-width:860px;margin:0 auto;padding:56px 24px 40px;text-align:center;position:relative;z-index:1}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;font-size:10px;padding:4px 12px;border:1px solid rgba(0,212,160,.25);border-radius:20px;color:var(--accent);margin-bottom:20px;letter-spacing:.07em;text-transform:uppercase}
+.hero h1{font-family:var(--display);font-size:clamp(26px,5vw,42px);font-weight:800;line-height:1.15;margin-bottom:14px;letter-spacing:-.01em}
+.hero h1 span{color:var(--accent)}
+.hero p{font-size:14px;color:var(--soft);max-width:580px;margin:0 auto 28px;line-height:1.7}
+.hero-links{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.hero-btn{font-size:12px;padding:9px 20px;border-radius:7px;text-decoration:none;font-family:var(--mono);transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.hero-btn.primary{background:var(--accent);color:#000;font-weight:600}
+.hero-btn.primary:hover{background:#00bfa8;transform:translateY(-1px)}
+.hero-btn.ghost{border:1px solid var(--border2);color:var(--soft)}
+.hero-btn.ghost:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ── LAYOUT ── */
+.page{max-width:860px;margin:0 auto;padding:0 24px 80px;position:relative;z-index:1}
+
+/* ── STEP SECTIONS ── */
+.step-section{margin-bottom:40px}
+.step-header{display:flex;align-items:flex-start;gap:14px;margin-bottom:18px}
+.step-num{width:36px;height:36px;border-radius:8px;background:var(--bg2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:14px;font-weight:700;color:var(--accent);flex-shrink:0}
+.step-title{font-family:var(--display);font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px}
+.step-sub{font-size:12px;color:var(--muted)}
+
+/* ── CARDS ── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:10px}
+.card.accent-left{border-left:2px solid var(--accent)}
+.card.warn-left{border-left:2px solid var(--warn)}
+.card.bull-left{border-left:2px solid var(--bull)}
+.card.bear-left{border-left:2px solid var(--bear)}
+.card-title{font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px;display:flex;align-items:center;gap:7px}
+.card-body{font-size:12px;color:var(--soft);line-height:1.7}
+
+/* ── MODE CARDS ── */
+.mode-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:16px}
+.mode-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;transition:border-color .15s}
+.mode-card:hover{border-color:var(--accent)}
+.mode-icon{font-size:20px;margin-bottom:8px}
+.mode-name{font-family:var(--display);font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px}
+.mode-desc{font-size:11px;color:var(--muted);line-height:1.55}
+.mode-example{font-size:10px;color:var(--accent);margin-top:6px;padding:3px 8px;background:rgba(0,212,160,.07);border-radius:4px;display:inline-block}
+
+/* ── FLOW STEPS ── */
+.flow{display:flex;flex-direction:column;gap:0}
+.flow-item{display:flex;gap:14px;padding:12px 0;position:relative}
+.flow-item:not(:last-child)::after{content:'';position:absolute;left:17px;top:42px;bottom:0;width:1px;background:var(--border2)}
+.flow-num{width:34px;height:34px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--accent);flex-shrink:0;z-index:1}
+.flow-content{flex:1;padding-top:4px}
+.flow-title{font-size:12px;font-weight:600;color:var(--text);margin-bottom:3px}
+.flow-desc{font-size:11px;color:var(--muted);line-height:1.6}
+.flow-tag{display:inline-block;font-size:10px;padding:2px 8px;border-radius:3px;margin-top:4px}
+.flow-tag.green{background:rgba(16,185,129,.1);color:var(--bull)}
+.flow-tag.blue{background:rgba(14,165,233,.1);color:var(--accent2)}
+.flow-tag.yellow{background:rgba(245,158,11,.1);color:var(--warn)}
+
+/* ── DIVIDER ── */
+.divider{height:1px;background:var(--border);margin:32px 0}
+
+/* ── SECTION LABEL ── */
+.section-label{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ── TIPS ── */
+.tips-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.tip-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:13px 15px}
+.tip-icon{font-size:18px;margin-bottom:7px}
+.tip-title{font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px}
+.tip-body{font-size:11px;color:var(--muted);line-height:1.6}
+
+/* ── CODE INLINE ── */
+.code{font-family:var(--mono);font-size:11px;padding:2px 7px;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;color:var(--accent)}
+
+/* ── SIGNAL PILLS ── */
+.pill{display:inline-block;font-size:10px;padding:2px 9px;border-radius:20px;font-weight:600}
+.pill.buy{background:rgba(16,185,129,.12);color:var(--bull);border:1px solid var(--bull)}
+.pill.sell{background:rgba(244,63,94,.12);color:var(--bear);border:1px solid var(--bear)}
+.pill.wait{background:rgba(245,158,11,.12);color:var(--warn);border:1px solid var(--warn)}
+
+/* ── FAQ ── */
+.faq{margin-bottom:10px}
+.faq-q{font-size:12px;font-weight:600;color:var(--text);padding:12px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none;transition:border-color .15s}
+.faq-q:hover{border-color:var(--accent)}
+.faq-q.open{border-bottom-left-radius:0;border-bottom-right-radius:0;border-color:var(--accent)}
+.faq-a{font-size:12px;color:var(--muted);padding:12px 16px;background:var(--bg3);border:1px solid var(--accent);border-top:none;border-bottom-left-radius:8px;border-bottom-right-radius:8px;line-height:1.7;display:none}
+.faq-a.open{display:block}
+.faq-arrow{transition:transform .2s;color:var(--muted);font-size:10px}
+.faq-q.open .faq-arrow{transform:rotate(180deg)}
+
+/* ── FOOTER ── */
+footer{border-top:1px solid var(--border);padding:24px 28px;text-align:center;font-size:11px;color:var(--muted);position:relative;z-index:1}
+footer a{color:var(--accent);text-decoration:none}
+footer a:hover{text-decoration:underline}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.hero{animation:fadeUp .5s ease both}
+.step-section{animation:fadeUp .4s ease both}
+</style>
+</head>
+<body>
+<div class="scanline"></div>
+
+<header>
+  <div class="logo-dot"></div>
+  <span class="logo-text">OI + CVD Lab — Tutorial</span>
+  <nav class="nav-links">
+    <a class="nav-link primary" href="https://tukulkacang.github.io/futures-oi-cvd-lab" target="_blank">🚀 Open App</a>
+    <a class="nav-link" href="https://tukulkacang.github.io/futures-oi-cvd-lab/tutorial.html" target="_blank">📖 Tutorial App</a>
+    <a class="nav-link" href="https://tukulkacang.github.io/futures-oi-cvd-lab/prompting.html" target="_blank">⚙️ Prompt Builder</a>
+  </nav>
+</header>
+
+<div class="hero">
+  <div class="hero-badge"><div class="logo-dot" style="width:6px;height:6px"></div> Panduan Lengkap</div>
+  <h1>Cara Pakai<br><span>OI + CVD Prompt Builder</span></h1>
+  <p>Dari generate prompt sampai baca hasil analisa AI — semua langkah dijelaskan dengan simpel. Tidak perlu coding, tidak perlu setup API.</p>
+  <div class="hero-links">
+    <a class="hero-btn primary" href="https://tukulkacang.github.io/futures-oi-cvd-lab/prompting.html" target="_blank">⚙️ Buka Prompt Builder</a>
+    <a class="hero-btn ghost" href="https://tukulkacang.github.io/futures-oi-cvd-lab" target="_blank">🚀 Buka App Utama</a>
+    <a class="hero-btn ghost" href="https://tukulkacang.github.io/futures-oi-cvd-lab/tutorial.html" target="_blank">📖 Tutorial App</a>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- ═══ STEP 1: PERSIAPAN ═══ -->
+  <div class="step-section">
+    <div class="step-header">
+      <div class="step-num">1</div>
+      <div>
+        <div class="step-title">Persiapkan Screenshot Chart</div>
+        <div class="step-sub">Sebelum generate prompt, pastikan chart lo sudah benar</div>
+      </div>
+    </div>
+
+    <div class="section-label">Yang harus terlihat di chart</div>
+    <div class="mode-grid">
+      <div class="mode-card">
+        <div class="mode-icon">📈</div>
+        <div class="mode-name">Price (Candlestick)</div>
+        <div class="mode-desc">Grafik harga utama harus terlihat jelas beserta label simbol di pojok kiri atas (contoh: 6J1!, Euro FX Futures)</div>
+      </div>
+      <div class="mode-card">
+        <div class="mode-icon">📊</div>
+        <div class="mode-name">Open Interest (OI)</div>
+        <div class="mode-desc">Panel OI harus terlihat di bawah chart harga. Label "OI" dan angkanya harus terbaca jelas</div>
+      </div>
+      <div class="mode-card">
+        <div class="mode-icon">📉</div>
+        <div class="mode-name">CVD (Volume Delta)</div>
+        <div class="mode-desc">Panel CVD harus terlihat di paling bawah. Warna hijau/merah candle CVD harus jelas</div>
+      </div>
+    </div>
+
+    <div class="card warn-left">
+      <div class="card-title">⚠️ Tips Screenshot</div>
+      <div class="card-body">
+        Pastikan ketiga panel (Price + OI + CVD) muat dalam satu screenshot. Jangan crop salah satunya. Resolusi minimal 1280px lebar agar AI bisa baca angka dengan akurat.
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ═══ STEP 2: PILIH MODE ═══ -->
+  <div class="step-section">
+    <div class="step-header">
+      <div class="step-num">2</div>
+      <div>
+        <div class="step-title">Pilih Mode Upload</div>
+        <div class="step-sub">Sesuaikan dengan jumlah chart yang mau dianalisa</div>
+      </div>
+    </div>
+
+    <div class="mode-grid">
+      <div class="mode-card">
+        <div class="mode-icon">🎯</div>
+        <div class="mode-name">Single Pair</div>
+        <div class="mode-desc">Upload 1 chart saja. Pilih simbol manual, pilih TF, langsung analisa.</div>
+        <div class="mode-example">Contoh: 6J1 1H saja</div>
+      </div>
+      <div class="mode-card">
+        <div class="mode-icon">🔀</div>
+        <div class="mode-name">Multi TF</div>
+        <div class="mode-desc">Upload beberapa chart dari pair yang SAMA tapi TF berbeda. Hasil analisa digabungkan jadi 1 kesimpulan.</div>
+        <div class="mode-example">Contoh: 6J1 1H + 6J1 4H</div>
+      </div>
+      <div class="mode-card">
+        <div class="mode-icon">🏆</div>
+        <div class="mode-name">Multi Pair</div>
+        <div class="mode-desc">Upload banyak chart dari pair berbeda, TF berbeda. AI auto-detect semuanya lalu ranking dari yang paling potensial.</div>
+        <div class="mode-example">Contoh: 6J1 1H + 6E1 4H + 6B1 1H</div>
+      </div>
+    </div>
+
+    <div class="card accent-left">
+      <div class="card-title">💡 Rekomendasi untuk pemula</div>
+      <div class="card-body">
+        Mulai dari <strong style="color:var(--text)">Multi TF</strong> — upload 1H dan 4H dari pair yang sama. Hasilnya lebih mudah diinterpretasi karena ada kesimpulan bias utama dari 2 TF.
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ═══ STEP 3: KONFIGURASI ═══ -->
+  <div class="step-section">
+    <div class="step-header">
+      <div class="step-num">3</div>
+      <div>
+        <div class="step-title">Setting Konfigurasi</div>
+        <div class="step-sub">Sesuaikan pengaturan sebelum generate prompt</div>
+      </div>
+    </div>
+
+    <div class="flow">
+      <div class="flow-item">
+        <div class="flow-num">A</div>
+        <div class="flow-content">
+          <div class="flow-title">Pilih Simbol Kontrak</div>
+          <div class="flow-desc">Pilih simbol yang sesuai dengan chart lo (6E1, 6B1, 6J1, GC1, CL1, dll). Di mode Multi Pair, bagian ini otomatis hilang karena AI yang detect sendiri.</div>
+          <span class="flow-tag green">Auto-detect di Multi Pair</span>
+        </div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-num">B</div>
+        <div class="flow-content">
+          <div class="flow-title">Pilih Model AI</div>
+          <div class="flow-desc">Klik salah satu pill model. Rekomendasi: <strong style="color:#c084fc">Claude</strong> untuk akurasi terbaik baca OI + CVD. Model lain bisa dipakai tapi mungkin hasilnya berbeda.</div>
+          <span class="flow-tag blue">Recommended: Claude</span>
+        </div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-num">C</div>
+        <div class="flow-content">
+          <div class="flow-title">Pilih Bahasa Prompt</div>
+          <div class="flow-desc"><strong style="color:var(--text)">🇬🇧 English</strong> — Prompt dalam bahasa Inggris, output JSON tetap Bahasa Indonesia. Lebih optimal untuk semua model AI.<br><strong style="color:var(--text)">🇮🇩 Indonesia</strong> — Semua dalam Bahasa Indonesia.</div>
+          <span class="flow-tag green">Recommended: English</span>
+        </div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-num">D</div>
+        <div class="flow-content">
+          <div class="flow-title">Setup yang Dianalisa</div>
+          <div class="flow-desc">Defaultnya semua 10 setup aktif. Bisa klik untuk toggle off setup yang tidak relevan. Untuk pemula, biarkan semua aktif.</div>
+          <span class="flow-tag yellow">Opsional</span>
+        </div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-num">E</div>
+        <div class="flow-content">
+          <div class="flow-title">Konteks Tambahan</div>
+          <div class="flow-desc">Klik tag kalau lo sudah lihat sesuatu di chart sebelumnya. Contoh: kalau OI jelas naik saat harga turun, klik <span class="code">Short Buildup</span>. Kalau ragu, biarkan kosong.</div>
+          <span class="flow-tag yellow">Opsional — kosongkan jika ragu</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ═══ STEP 4: GENERATE & COPY ═══ -->
+  <div class="step-section">
+    <div class="step-header">
+      <div class="step-num">4</div>
+      <div>
+        <div class="step-title">Generate & Salin Prompt</div>
+        <div class="step-sub">Klik generate lalu salin prompt ke Claude</div>
+      </div>
+    </div>
+
+    <div class="flow">
+      <div class="flow-item">
+        <div class="flow-num">1</div>
+        <div class="flow-content">
+          <div class="flow-title">Klik ▶ Generate Prompt</div>
+          <div class="flow-desc">Prompt akan muncul di panel kanan dengan syntax highlighting. Cek bagian atas untuk lihat model target dan mode yang dipilih sudah benar.</div>
+        </div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-num">2</div>
+        <div class="flow-content">
+          <div class="flow-title">Klik ⎘ Salin Bersih</div>
+          <div class="flow-desc">Gunakan tombol <strong style="color:var(--accent)">Salin Bersih</strong> — bukan Salin biasa. Tombol ini otomatis membuang bagian header (nama model, tanggal, link) sehingga hanya instruksi AI yang tersalin. Ini penting agar Claude tidak bingung.</div>
+          <span class="flow-tag green">Selalu pakai Salin Bersih</span>
+        </div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-num">3</div>
+        <div class="flow-content">
+          <div class="flow-title">Buka Claude.ai di tab baru</div>
+          <div class="flow-desc">Buka <a href="https://claude.ai" target="_blank" style="color:var(--accent)">claude.ai</a>, mulai chat baru (fresh chat), paste prompt, lalu upload screenshot chart lo. Jangan campur beberapa sesi analisa dalam 1 chat.</div>
+          <span class="flow-tag blue">Fresh chat tiap analisa</span>
+        </div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-num">4</div>
+        <div class="flow-content">
+          <div class="flow-title">Kirim ke Claude</div>
+          <div class="flow-desc">Paste prompt → attach screenshot → send. Claude akan memproses dan mengembalikan JSON hasil analisa.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ═══ STEP 5: RENDER HASIL ═══ -->
+  <div class="step-section">
+    <div class="step-header">
+      <div class="step-num">5</div>
+      <div>
+        <div class="step-title">Render & Baca Hasil Analisa</div>
+        <div class="step-sub">Ubah output JSON Claude jadi tampilan kartu yang mudah dibaca</div>
+      </div>
+    </div>
+
+    <div class="flow">
+      <div class="flow-item">
+        <div class="flow-num">1</div>
+        <div class="flow-content">
+          <div class="flow-title">Copy output JSON dari Claude</div>
+          <div class="flow-desc">Setelah Claude selesai reply, select semua teks JSON-nya (biasanya dimulai dari tanda kurung <span class="code">[</span> atau <span class="code">{</span>) lalu copy.</div>
+        </div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-num">2</div>
+        <div class="flow-content">
+          <div class="flow-title">Balik ke Prompt Builder, scroll ke bawah</div>
+          <div class="flow-desc">Di bagian bawah halaman ada kotak <strong style="color:#f59e0b">Paste & Render Hasil JSON dari Claude</strong>. Paste JSON di sana.</div>
+        </div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-num">3</div>
+        <div class="flow-content">
+          <div class="flow-title">Klik ▶ Render</div>
+          <div class="flow-desc">JSON otomatis diubah jadi kartu hasil analisa yang enak dibaca — lengkap dengan Entry, SL, TP, confidence bar, dan rekomendasi forex.</div>
+          <span class="flow-tag green">Tampilan kartu muncul otomatis</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-label" style="margin-top:20px">Cara baca kartu hasil</div>
+    <div class="card accent-left">
+      <div class="card-title">📋 Anatomi Kartu Hasil</div>
+      <div class="card-body" style="display:grid;gap:8px;margin-top:4px">
+        <div>🥇 <strong style="color:var(--text)">Ranking</strong> — Urutan dari yang paling potensial. Selalu prioritaskan rank #1.</div>
+        <div><span class="pill buy">▲ BUY</span> / <span class="pill sell">▼ SELL</span> / <span class="pill wait">⊘ WAIT</span> — Signal utama yang direkomendasikan AI.</div>
+        <div>🟢 <strong style="color:var(--text)">TF Aligned</strong> — Semua timeframe sepakat arahnya → sinyal lebih kuat. <span style="color:var(--bear)">TF Conflict</span> → jangan entry.</div>
+        <div>📍 <strong style="color:var(--text)">Entry</strong> — Level harga untuk masuk posisi. Tunggu harga sampai di sini dulu.</div>
+        <div>🛑 <strong style="color:var(--text)">Stop Loss</strong> — Batas rugi maksimal. Wajib dipasang saat entry.</div>
+        <div>🎯 <strong style="color:var(--text)">TP 1/2/3</strong> — Target profit bertahap. Ambil sebagian profit di TP1, biarkan sisanya jalan ke TP2/3.</div>
+        <div>📊 <strong style="color:var(--text)">Confidence bar</strong> — Seberapa yakin AI. Di bawah 65% → pertimbangkan ulang sebelum entry.</div>
+        <div>⚠️ <strong style="color:var(--text)">Kotak kuning</strong> — Kondisi yang bisa membatalkan setup. Wajib dibaca.</div>
+        <div>🔵 <strong style="color:var(--text)">Rekomendasi Forex</strong> — Equivalent di pasar forex (khusus pair inverse seperti 6J1, 6C1, 6S1).</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ═══ TIPS ═══ -->
+  <div class="step-section">
+    <div class="step-header">
+      <div class="step-num">💡</div>
+      <div>
+        <div class="step-title">Tips & Best Practice</div>
+        <div class="step-sub">Supaya hasil analisa makin akurat</div>
+      </div>
+    </div>
+
+    <div class="tips-grid">
+      <div class="tip-card">
+        <div class="tip-icon">🧹</div>
+        <div class="tip-title">Fresh Chat Tiap Sesi</div>
+        <div class="tip-body">Selalu buka chat baru di Claude untuk setiap analisa. Konteks lama bisa mempengaruhi hasil.</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">📐</div>
+        <div class="tip-title">Chart yang Bersih</div>
+        <div class="tip-body">Pastikan OI, CVD, dan Price semua kelihatan dalam satu screenshot. Jangan terlalu zoom in.</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">🇬🇧</div>
+        <div class="tip-title">Pakai Bahasa English</div>
+        <div class="tip-body">Prompt EN → Output ID. Claude berpikir lebih optimal dengan English, tapi hasil tetap Bahasa Indonesia.</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">⎘</div>
+        <div class="tip-title">Selalu Salin Bersih</div>
+        <div class="tip-body">Gunakan tombol "Salin Bersih" bukan "Salin" biasa agar header prompt tidak ikut ter-copy.</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">📊</div>
+        <div class="tip-title">Confidence ≥ 70%</div>
+        <div class="tip-body">Hanya pertimbangkan entry kalau confidence AI minimal 70% dan TF Aligned hijau.</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">⚠️</div>
+        <div class="tip-title">AI Bukan Oracle</div>
+        <div class="tip-body">AI adalah alat bantu analisa, bukan jaminan profit. Selalu gunakan money management dan SL.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ═══ FAQ ═══ -->
+  <div class="step-section">
+    <div class="step-header">
+      <div class="step-num">❓</div>
+      <div>
+        <div class="step-title">FAQ</div>
+        <div class="step-sub">Pertanyaan yang sering ditanyakan</div>
+      </div>
+    </div>
+
+    <div class="faq">
+      <div class="faq-q" onclick="toggleFaq(this)">Kenapa hasil AI beda-beda setiap model? <span class="faq-arrow">▼</span></div>
+      <div class="faq-a">Setiap AI dilatih dengan cara berbeda dan punya kemampuan baca gambar yang berbeda. Claude paling konsisten untuk baca OI + CVD karena kemampuan visual reasoning-nya lebih detail. Model lain seperti Gemini lebih confident tapi kadang kurang akurat di chart yang ambigu.</div>
+    </div>
+
+    <div class="faq">
+      <div class="faq-q" onclick="toggleFaq(this)">Kenapa ada "Salin" dan "Salin Bersih"? <span class="faq-arrow">▼</span></div>
+      <div class="faq-a">"Salin" menyalin seluruh prompt termasuk header (nama model, tanggal, link). "Salin Bersih" otomatis membuang bagian header dan hanya menyalin instruksi AI-nya saja. Selalu gunakan Salin Bersih agar Claude tidak bingung dengan teks yang tidak relevan.</div>
+    </div>
+
+    <div class="faq">
+      <div class="faq-q" onclick="toggleFaq(this)">Konteks Tambahan perlu diklik semua? <span class="faq-arrow">▼</span></div>
+      <div class="faq-a">Tidak perlu. Konteks tambahan bersifat opsional — klik hanya kalau lo sudah melihat kondisi tertentu di chart sebelum analisa. Kalau ragu, biarkan semua kosong dan biarkan AI yang analisa sendiri tanpa bias.</div>
+    </div>
+
+    <div class="faq">
+      <div class="faq-q" onclick="toggleFaq(this)">Pilihan simbol hilang di mode Multi Pair — kenapa? <span class="faq-arrow">▼</span></div>
+      <div class="faq-a">Di mode Multi Pair, AI yang otomatis mendeteksi simbol dari label chart TradingView. Jadi lo tidak perlu memilih simbol manual — cukup upload screenshot dan AI akan membaca "6J1!", "Euro FX Futures", atau nama simbol apapun yang tertulis di chart.</div>
+    </div>
+
+    <div class="faq">
+      <div class="faq-q" onclick="toggleFaq(this)">Apa artinya "TF Conflict"? <span class="faq-arrow">▼</span></div>
+      <div class="faq-a">TF Conflict artinya timeframe yang dianalisa memberikan sinyal yang berlawanan — misalnya 1H BULLISH tapi 4H BEARISH. Dalam kondisi ini AI akan memberikan signal NO_ENTRY dan skor = 0. Sebaiknya tunggu sampai kedua TF sepakat sebelum entry.</div>
+    </div>
+
+    <div class="faq">
+      <div class="faq-q" onclick="toggleFaq(this)">Pair inverse (6J1, 6C1, 6S1) itu maksudnya apa? <span class="faq-arrow">▼</span></div>
+      <div class="faq-a">Pair inverse adalah kontrak futures yang pergerakan harganya terbalik dari pasangan forex-nya. Contoh: 6J1 adalah kontrak JPY/USD — kalau harga 6J1 naik, artinya JPY menguat dan USD/JPY (di forex) TURUN. Builder otomatis menampilkan alert dan rekomendasi forex yang sudah dikonversi.</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ═══ QUICK REFERENCE ═══ -->
+  <div class="step-section">
+    <div class="section-label">Referensi cepat — 10 setup</div>
+    <div style="display:grid;gap:6px">
+      <div class="card" style="display:flex;align-items:center;gap:12px;padding:10px 14px">
+        <span style="font-size:11px;color:var(--muted);min-width:28px">#1</span>
+        <span style="color:var(--bull);font-size:11px;min-width:60px">BULLISH</span>
+        <span style="font-size:12px;color:var(--text)">Strong Bullish Trend</span>
+        <span style="margin-left:auto;font-size:10px;color:var(--muted)">OI↑ + Price↑ + CVD↑ ≥3 bar</span>
+      </div>
+      <div class="card" style="display:flex;align-items:center;gap:12px;padding:10px 14px">
+        <span style="font-size:11px;color:var(--muted);min-width:28px">#2</span>
+        <span style="color:var(--bear);font-size:11px;min-width:60px">BEARISH</span>
+        <span style="font-size:12px;color:var(--text)">Strong Bearish Trend</span>
+        <span style="margin-left:auto;font-size:10px;color:var(--muted)">OI↑ + Price↓ + CVD↓</span>
+      </div>
+      <div class="card" style="display:flex;align-items:center;gap:12px;padding:10px 14px">
+        <span style="font-size:11px;color:var(--muted);min-width:28px">#3</span>
+        <span style="color:var(--bull);font-size:11px;min-width:60px">REVERSAL</span>
+        <span style="font-size:12px;color:var(--text)">Bullish Divergence Reversal</span>
+        <span style="margin-left:auto;font-size:10px;color:var(--muted)">Price LL tapi CVD HL</span>
+      </div>
+      <div class="card" style="display:flex;align-items:center;gap:12px;padding:10px 14px">
+        <span style="font-size:11px;color:var(--muted);min-width:28px">#4</span>
+        <span style="color:var(--bear);font-size:11px;min-width:60px">REVERSAL</span>
+        <span style="font-size:12px;color:var(--text)">Bearish Divergence Reversal</span>
+        <span style="margin-left:auto;font-size:10px;color:var(--muted)">Price HH tapi CVD LH</span>
+      </div>
+      <div class="card" style="display:flex;align-items:center;gap:12px;padding:10px 14px">
+        <span style="font-size:11px;color:var(--muted);min-width:28px">#5</span>
+        <span style="color:var(--bull);font-size:11px;min-width:60px">BULLISH</span>
+        <span style="font-size:12px;color:var(--text)">Valid Breakout Long</span>
+        <span style="margin-left:auto;font-size:10px;color:var(--muted)">Break resistance + OI spike + CVD vertikal</span>
+      </div>
+      <div class="card" style="display:flex;align-items:center;gap:12px;padding:10px 14px">
+        <span style="font-size:11px;color:var(--muted);min-width:28px">#6</span>
+        <span style="color:var(--bear);font-size:11px;min-width:60px">BEARISH</span>
+        <span style="font-size:12px;color:var(--text)">Valid Breakdown Short</span>
+        <span style="margin-left:auto;font-size:10px;color:var(--muted)">Break support + OI spike + CVD waterfall</span>
+      </div>
+      <div class="card" style="display:flex;align-items:center;gap:12px;padding:10px 14px">
+        <span style="font-size:11px;color:var(--muted);min-width:28px">#7</span>
+        <span style="color:var(--warn);font-size:11px;min-width:60px">RANGE</span>
+        <span style="font-size:12px;color:var(--text)">Accumulation Phase</span>
+        <span style="margin-left:auto;font-size:10px;color:var(--muted)">CVD naik meski sideways</span>
+      </div>
+      <div class="card" style="display:flex;align-items:center;gap:12px;padding:10px 14px">
+        <span style="font-size:11px;color:var(--muted);min-width:28px">#8</span>
+        <span style="color:var(--warn);font-size:11px;min-width:60px">RANGE</span>
+        <span style="font-size:12px;color:var(--text)">Distribution Phase</span>
+        <span style="margin-left:auto;font-size:10px;color:var(--muted)">CVD turun meski sideways</span>
+      </div>
+      <div class="card" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-left:2px solid var(--bear)">
+        <span style="font-size:11px;color:var(--muted);min-width:28px">#9</span>
+        <span style="color:var(--bear);font-size:11px;min-width:60px">⚠ RISIKO</span>
+        <span style="font-size:12px;color:var(--text)">Weak Rally / Short Covering</span>
+        <span style="margin-left:auto;font-size:10px;color:var(--muted)">OI↓ + Price↑ — penalti -15 skor</span>
+      </div>
+      <div class="card" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-left:2px solid var(--accent2)">
+        <span style="font-size:11px;color:var(--muted);min-width:28px">#10</span>
+        <span style="color:var(--accent2);font-size:11px;min-width:60px">EXIT</span>
+        <span style="font-size:12px;color:var(--text)">Trend Exhaustion</span>
+        <span style="margin-left:auto;font-size:10px;color:var(--muted)">OI drop >X% dari puncak — signal NO_ENTRY</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <div style="margin-bottom:8px">
+    <a href="https://tukulkacang.github.io/futures-oi-cvd-lab" target="_blank">🚀 Open App</a> &nbsp;·&nbsp;
+    <a href="https://tukulkacang.github.io/futures-oi-cvd-lab/tutorial.html" target="_blank">📖 Tutorial App</a> &nbsp;·&nbsp;
+    <a href="https://tukulkacang.github.io/futures-oi-cvd-lab/prompting.html" target="_blank">⚙️ Prompt Builder</a>
+  </div>
+  OI + CVD Futures Lab · Cak To's Trading Tools · v3.1
+</footer>
+
+<script>
+function toggleFaq(el){
+  const ans = el.nextElementSibling;
+  const isOpen = el.classList.contains('open');
+  // Close all
+  document.querySelectorAll('.faq-q').forEach(q=>q.classList.remove('open'));
+  document.querySelectorAll('.faq-a').forEach(a=>a.classList.remove('open'));
+  // Toggle clicked
+  if(!isOpen){ el.classList.add('open'); ans.classList.add('open'); }
+}
+</script>
+</body>
+</html>

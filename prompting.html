@@ -1157,7 +1157,15 @@ function renderResult() {
   if (!raw) { errEl.textContent = 'Belum ada JSON yang di-paste.'; errEl.style.display='block'; return; }
 
   let data;
-  try { data = JSON.parse(raw); } catch(e) {
+  try {
+    // Bersihkan markdown code block wrapper dari Claude
+    let cleaned = raw
+      .replace(/^```json\s*/i, '')
+      .replace(/^```\s*/i, '')
+      .replace(/\s*```$/i, '')
+      .trim();
+    data = JSON.parse(cleaned);
+  } catch(e) {
     errEl.textContent = 'JSON tidak valid: ' + e.message;
     errEl.style.display = 'block'; return;
   }

@@ -558,10 +558,15 @@ function toggleTFTag(el){const tf=el.dataset.tf;activeTFs.has(tf)?(activeTFs.del
 
 /* ═══ BUILD HELPERS ═══ */
 function buildInverseCtx(sym,d){
-  if(d.inverse) return `PAIR INVERSE — WAJIB:
+  if(d.inverse) return `PAIR INVERSE — WAJIB DIBACA DENGAN TELITI:
 Kontrak ${sym} = ${d.base}/USD (bukan USD/${d.base}).
 - Price NAIK  → ${d.descNaik} → BULLISH = LONG ${d.base} / ${d.forex} TURUN
 - Price TURUN → ${d.descTurun} → BEARISH = SHORT ${d.base} / ${d.forex} NAIK
+
+ATURAN HARGA WAJIB:
+1. Field entry, sl, tp1, tp2, tp3 di JSON HARUS menggunakan harga FUTURES yang terlihat di chart (contoh: 0.006410), BUKAN harga forex (bukan 157.xx atau 148.xx).
+2. forex_recommendation boleh menyebut level forex sebagai referensi tambahan saja.
+3. Jangan konversi atau ubah angka harga dari apa yang terlihat di chart.
 Isi forex_recommendation sesuai arah ${d.forex}. Jangan kosongkan inverse_note.`;
   return `Pair normal. BUY = LONG ${d.pair}. SELL = SHORT ${d.pair}.\nKosongkan inverse_note & forex_recommendation.`;
 }
@@ -629,10 +634,15 @@ const JSON_SINGLE=`{
 
 /* ═══ EN HELPERS ═══ */
 function buildInverseCtxEN(sym,d){
-  if(d.inverse) return `INVERSE PAIR — IMPORTANT:
+  if(d.inverse) return `INVERSE PAIR — READ CAREFULLY:
 The ${sym} futures contract actually represents ${d.base}/USD (not USD/${d.base}).
 - Price RISES in chart  → ${d.base} strengthens → USD/${d.base} FALLS → BULLISH = LONG ${d.base}
 - Price FALLS in chart  → ${d.base} weakens     → USD/${d.base} RISES → BEARISH = SHORT ${d.base}
+
+MANDATORY PRICE RULES:
+1. Fields entry, sl, tp1, tp2, tp3 in JSON MUST use the FUTURES price visible on the chart (e.g. 0.006410), NOT the forex price (not 157.xx or 148.xx).
+2. forex_recommendation may mention forex levels as reference only.
+3. Do NOT convert or change price numbers from what is shown on the chart.
 Write forex_recommendation based on direction of ${d.forex}. Do not leave inverse_note empty.`;
   return `Normal (non-inverse) pair. BUY = LONG ${d.pair}. SELL = SHORT ${d.pair}.\nLeave inverse_note and forex_recommendation as empty strings.`;
 }
@@ -717,8 +727,8 @@ function generatePrompt(){
 
   // Language-specific output instruction appended to every prompt
   const langInstruction = isEN
-    ? `\n=== OUTPUT LANGUAGE RULE ===\nWrite the prompt instructions in English (already done above).\nHOWEVER: ALL string values inside the JSON output MUST be written in Bahasa Indonesia.\nThis applies to: market_state, logic_match, checklist_match, risk_note, inverse_note, forex_recommendation.\nSignal values (BUY/SELL/NO_ENTRY) and setup_type (BULLISH/BEARISH/NEUTRAL/EXIT) remain in English.\n`
-    : `\n=== ATURAN OUTPUT ===\nSeluruh nilai string dalam JSON ditulis dalam Bahasa Indonesia.\n`;
+    ? `\n=== OUTPUT LANGUAGE RULE ===\nWrite the prompt instructions in English (already done above).\nHOWEVER: ALL string values inside the JSON output MUST be written in Bahasa Indonesia.\nThis applies to: market_state, logic_match, checklist_match, risk_note, inverse_note, forex_recommendation.\nSignal values (BUY/SELL/NO_ENTRY) and setup_type (BULLISH/BEARISH/NEUTRAL/EXIT) remain in English.\n\n=== CLAUDE-SPECIFIC INSTRUCTIONS ===\nYou are Claude by Anthropic. Leverage your visual reasoning strength to carefully read ALL three panels: Price, OI, and CVD.\n- Be precise and literal: read exact price levels, OI values, and CVD slope from the chart as shown.\n- Be calibrated: only assign high confidence (>75%) when ALL checklist conditions are clearly visible.\n- Be honest: if OI or CVD is unclear or cut off in the screenshot, lower confidence and state it in risk_note.\n- Never extrapolate prices beyond what is visible. Entry/SL/TP must be close to current price on chart.\n- Return clean JSON only. No preamble, no explanation outside JSON.\n`
+    : `\n=== ATURAN OUTPUT ===\nSeluruh nilai string dalam JSON ditulis dalam Bahasa Indonesia.\n\n=== INSTRUKSI KHUSUS CLAUDE ===\nKamu adalah Claude buatan Anthropic. Gunakan kemampuan visual reasoning-mu untuk membaca ketiga panel: Price, OI, dan CVD dengan teliti.\n- Baca literal: baca level harga, nilai OI, dan slope CVD persis seperti yang terlihat di chart.\n- Kalibrasi confidence: hanya beri confidence >75% jika SEMUA kondisi checklist terlihat jelas.\n- Jujur: jika OI atau CVD tidak terbaca jelas atau terpotong, turunkan confidence dan catat di risk_note.\n- Jangan ekstrapolasi harga di luar yang terlihat. Entry/SL/TP harus dekat dengan harga current di chart.\n- Kembalikan JSON bersih saja. Tidak ada teks di luar JSON.\n`;
 
   const QUADRANT = isEN
     ? `=== 4 OI + PRICE QUADRANTS ===

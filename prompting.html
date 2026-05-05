@@ -134,7 +134,6 @@ select option{background:var(--bg3)}
 .prompt-area::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
 .output-ft{padding:10px 16px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px}
 
-/* ── TOAST ── */
 /* ── RESULT CARDS ── */
 .rc{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:12px}
 .rc.rc-top{border:2px solid var(--accent)}
@@ -172,9 +171,18 @@ select option{background:var(--bg3)}
 .scanline{position:fixed;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(0,212,160,.04),transparent);animation:scan 8s linear infinite;pointer-events:none;z-index:0}
 @keyframes scan{0%{transform:translateY(-100%)}100%{transform:translateY(100vh)}}
 
-/* ── TF MULTI TAGS ── */
 #tfMultiTags .tag-chip{opacity:.4}
 #tfMultiTags .tag-chip.active{opacity:1}
+
+/* ── RENDER TOGGLE ── */
+.render-toggle-row{display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(0,212,160,.05);border:1px solid rgba(0,212,160,.15);border-radius:8px;margin-top:14px;cursor:pointer;user-select:none;transition:background .15s}
+.render-toggle-row:hover{background:rgba(0,212,160,.09)}
+.toggle-switch{width:36px;height:20px;border-radius:10px;background:var(--bg3);border:1px solid var(--border2);position:relative;flex-shrink:0;transition:background .2s}
+.toggle-switch.on{background:var(--accent)}
+.toggle-knob{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.toggle-switch.on .toggle-knob{transform:translateX(16px)}
+.render-toggle-label{font-size:13px;color:var(--text);flex:1;line-height:1.4}
+.render-toggle-sub{font-size:11px;color:var(--muted);margin-top:1px}
 </style>
 </head>
 <body>
@@ -186,7 +194,7 @@ select option{background:var(--bg3)}
   <nav class="nav-links">
     <a class="nav-link primary" href="https://tukulkacang.github.io/futures-oi-cvd-lab" target="_blank">🚀 Open App</a>
     <a class="nav-link" href="https://tukulkacang.github.io/futures-oi-cvd-lab/tutorial.html" target="_blank">📖 Tutorial</a>
-    <span style="font-size:12px;color:var(--muted);padding:0 2px">v3.1</span>
+    <span style="font-size:12px;color:var(--muted);padding:0 2px">v3.2</span>
   </nav>
 </header>
 
@@ -211,7 +219,6 @@ select option{background:var(--bg3)}
     <div class="mode-desc" id="modeDesc"></div>
 
     <!-- SYMBOL SECTION -->
-    <!-- Single / Multi TF: pilih 1 simbol -->
     <div id="symSingle">
       <div class="field">
         <label>Simbol Kontrak</label>
@@ -232,7 +239,6 @@ select option{background:var(--bg3)}
       <div id="inverseAlert"></div>
     </div>
 
-    <!-- Multi Pair: simbol tidak perlu dipilih -->
     <div id="symMulti" style="display:none">
       <div class="auto-badge">
         <div class="auto-dot"></div>
@@ -337,7 +343,18 @@ select option{background:var(--bg3)}
       </div>
     </div>
 
-    <div class="btn-row" style="margin-top:16px">
+    <!-- ── RENDER TOGGLE ── -->
+    <div class="render-toggle-row" onclick="toggleAutoRender()" id="renderToggleRow">
+      <div class="toggle-switch on" id="renderToggleSwitch">
+        <div class="toggle-knob"></div>
+      </div>
+      <div>
+        <div class="render-toggle-label">⚡ Auto-render di Claude</div>
+        <div class="render-toggle-sub">Prompt minta Claude langsung buat visual card setelah analisa JSON</div>
+      </div>
+    </div>
+
+    <div class="btn-row" style="margin-top:14px">
       <button class="btn btn-primary" onclick="generatePrompt()">▶ Generate Prompt</button>
       <button class="btn btn-ghost" onclick="resetAll()">Reset</button>
     </div>
@@ -364,12 +381,15 @@ select option{background:var(--bg3)}
     <div style="font-size:12px;color:var(--muted)" id="symLabel">—</div>
     <div class="btn-row">
       <button class="btn btn-ghost" id="copyBtn" onclick="copyPrompt()" style="font-size:13px;padding:6px 13px">⎘ Salin</button>
-      <button class="btn btn-ghost" id="copyCleanBtn" onclick="copyClean()" style="font-size:13px;padding:6px 13px;border-color:rgba(0,212,160,.4);color:var(--accent)" title="Salin tanpa header — langsung dari instruksi AI">⎘ Salin Bersih</button>
+      <button class="btn btn-ghost" id="copyCleanBtn" onclick="copyClean()" style="font-size:13px;padding:6px 13px;border-color:rgba(0,212,160,.4);color:var(--accent)" title="Salin tanpa header">⎘ Salin Bersih</button>
       <button class="btn btn-ghost" onclick="downloadPrompt()" style="font-size:13px;padding:6px 13px">↓ Download</button>
     </div>
   </div>
 </div>
 
+</div><!-- /container -->
+
+<!-- ═══ JSON PASTE SECTION ═══ -->
 <div style="max-width:1200px;margin:0 auto;padding:0 18px 24px;position:relative;z-index:1">
   <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden">
     <div class="panel-hd">
@@ -459,7 +479,7 @@ const MODE_DESC={
   multi_pair: "Upload beberapa chart dari pair dan TF yang BERBEDA-BEDA. Simbol tidak perlu dipilih — AI auto-detect dari setiap chart, terapkan parameter masing-masing, lalu ranking.",
 };
 
-let currentMode='single', selectedModel='gemini', currentLang='en';
+let currentMode='single', selectedModel='gemini', currentLang='en', autoRenderEnabled=true;
 const activeTags=new Set(), selectedSetups=new Set([1,2,3,4,5,6,7,8,9,10]), activeTFs=new Set(['1H','4H']);
 let lastPrompt='';
 
@@ -467,6 +487,86 @@ const LANG_DESC={
   en:"Prompt ditulis dalam English agar AI berpikir lebih optimal → semua nilai output JSON (market_state, logic_match, risk_note, dll) ditulis dalam Bahasa Indonesia.",
   id:"Prompt & output JSON seluruhnya dalam Bahasa Indonesia.",
 };
+
+/* ═══ AUTO-RENDER TOGGLE ═══ */
+function toggleAutoRender(){
+  autoRenderEnabled = !autoRenderEnabled;
+  const sw = document.getElementById('renderToggleSwitch');
+  sw.classList.toggle('on', autoRenderEnabled);
+}
+
+/* ═══ RENDER INSTRUCTION BLOCK ═══ */
+function buildRenderInstruction(mode, isEN){
+  if(!autoRenderEnabled) return '';
+
+  const isMultiPair = mode === 'multi_pair';
+  const isMultiTF   = mode === 'multi_tf';
+
+  return `
+
+=== RENDER INSTRUCTION — WAJIB DIJALANKAN SETELAH JSON ===
+Setelah menghasilkan JSON di atas, LANGSUNG buat sebuah HTML artifact yang merender hasil analisa secara visual.
+Jangan tanya apapun. Buat artifact-nya sekarang juga.
+
+SPESIFIKASI ARTIFACT HTML:
+- Dark theme: background #0a0c0f, card background #111318, inner card #181c22
+- Font: JetBrains Mono dari Google Fonts (import di dalam <style>)
+- Accent color: #00d4a0 (hijau teal)
+- Lebar penuh, responsive, padding 20px
+
+KOMPONEN YANG HARUS ADA:
+
+1. HEADER CARD (per pair/chart):
+   - Nama simbol + timeframe (font besar, bold)
+   - Signal badge: BUY → background rgba(16,185,129,.2) border #10b981 text hijau
+                   SELL → background rgba(244,63,94,.2) border #f43f5e text merah
+                   NO_ENTRY → background rgba(245,158,11,.2) border #f59e0b text kuning
+
+2. PRICE GRID (5 kotak sejajar):
+   Entry  → border-left 3px solid #0ea5e9  (biru)
+   SL     → border-left 3px solid #f43f5e  (merah)
+   TP1    → border-left 3px solid #10b981  (hijau)
+   TP2    → border-left 3px solid #10b981
+   TP3    → border-left 3px solid #10b981
+   Tiap kotak: label kecil uppercase + nilai besar font-weight 700
+
+3. CONFIDENCE BAR:
+   - Bar horizontal height 6px, border-radius 3px
+   - Background #181c22, fill sesuai nilai:
+     < 60  → #f43f5e (merah)
+     60-75 → #f59e0b (kuning)
+     > 75  → #00d4a0 (hijau)
+   - Teks "XX% confidence" di atas bar
+
+4. MARKET STATE & LOGIC MATCH:
+   - Dua blok teks dalam kotak #181c22
+   - "Market State" → label kecil + teks
+   - "Logic Match" → label kecil + teks, border-left 2px solid #00d4a0
+
+5. RISK NOTE:
+   - Kotak dengan background rgba(245,158,11,.08), border 1px solid rgba(245,158,11,.25)
+   - Icon ⚠ di depan teks
+
+6. INVERSE / FOREX (jika ada):
+   - Kotak dengan background rgba(14,165,233,.08), border 1px solid rgba(14,165,233,.25)
+   - Hanya tampil jika inverse_note atau forex_recommendation tidak kosong
+${isMultiTF ? `
+7. MULTI-TF ROWS (di atas price grid):
+   - Tampilkan baris per TF: badge TF | market_state | Setup #N | confidence%
+   - Warna badge TF: #181c22 border #00d4a0
+   - Di bawah rows: "Multi-TF Summary" card dengan border accent #00d4a0
+` : ''}${isMultiPair ? `
+7. RANKING (multi pair):
+   - Card #1 (rank tertinggi): border 2px solid #00d4a0, tambahkan badge 🥇 di pojok kanan atas
+   - Card #2: border 1px solid rgba(0,212,160,.3), badge 🥈
+   - Card #3+: border normal, badge 🥉 / nomor
+   - Tampilkan "Skor: XX.X" di bawah nama simbol
+   - Urutkan dari rank 1 ke bawah
+` : ''}
+WAJIB: Semua card dalam satu artifact HTML tunggal, rapi, tidak ada tombol, cukup tampilan baca langsung.
+Gunakan grid/flexbox untuk layout price grid. Beri gap antar card 16px.
+`;
+}
 
 /* ═══ LANG ═══ */
 function setLang(l){
@@ -612,26 +712,6 @@ function buildTagCtx(){
   return out;
 }
 
-const JSON_SINGLE=`{
-  "setup_id": <1-10>,
-  "market_state": "<deskripsi kondisi pasar>",
-  "setup_type": "<BULLISH|BEARISH|NEUTRAL|EXIT>",
-  "logic_match": "<penjelasan OI/CVD/Price yang terlihat, min 2 kalimat>",
-  "checklist_match": "<kondisi terpenuhi; pisah semicolon>",
-  "trading_setup": {
-    "signal": "<BUY|SELL|NO_ENTRY>",
-    "entry": "<level entry>",
-    "sl": "<stop loss>",
-    "tp1": "<TP RR 1:1>",
-    "tp2": "<TP RR 1:2>",
-    "tp3": "<TP RR 1:3>"
-  },
-  "confidence": <40-95>,
-  "risk_note": "<kondisi invalidasi>",
-  "inverse_note": "<isi jika inverse, kosongkan jika tidak>",
-  "forex_recommendation": "<isi jika inverse, kosongkan jika tidak>"
-}`;
-
 /* ═══ EN HELPERS ═══ */
 function buildInverseCtxEN(sym,d){
   if(d.inverse) return `INVERSE PAIR — READ CAREFULLY:
@@ -678,7 +758,6 @@ function generatePrompt(){
   const modelHint=MODEL_HINT[selectedModel];
   const isEN=currentLang==='en';
 
-  // JSON field descriptions — EN mode: field hints in English, ID mode: in Bahasa
   const F = isEN ? {
     market_state:"<current market condition description>",
     setup_type:"<BULLISH|BEARISH|NEUTRAL|EXIT>",
@@ -725,10 +804,9 @@ function generatePrompt(){
   "forex_recommendation": "${F.forex_rec}"
 }`;
 
-  // Language-specific output instruction appended to every prompt
   const langInstruction = isEN
-    ? `\n=== OUTPUT LANGUAGE RULE ===\nWrite the prompt instructions in English (already done above).\nHOWEVER: ALL string values inside the JSON output MUST be written in Bahasa Indonesia.\nThis applies to: market_state, logic_match, checklist_match, risk_note, inverse_note, forex_recommendation.\nSignal values (BUY/SELL/NO_ENTRY) and setup_type (BULLISH/BEARISH/NEUTRAL/EXIT) remain in English.\n\n=== CLAUDE-SPECIFIC INSTRUCTIONS ===\nYou are Claude by Anthropic. Leverage your visual reasoning strength to carefully read ALL three panels: Price, OI, and CVD.\n- Be precise and literal: read exact price levels, OI values, and CVD slope from the chart as shown.\n- Be calibrated: only assign high confidence (>75%) when ALL checklist conditions are clearly visible.\n- Be honest: if OI or CVD is unclear or cut off in the screenshot, lower confidence and state it in risk_note.\n- Never extrapolate prices beyond what is visible. Entry/SL/TP must be close to current price on chart.\n- Return clean JSON only. No preamble, no explanation outside JSON.\n`
-    : `\n=== ATURAN OUTPUT ===\nSeluruh nilai string dalam JSON ditulis dalam Bahasa Indonesia.\n\n=== INSTRUKSI KHUSUS CLAUDE ===\nKamu adalah Claude buatan Anthropic. Gunakan kemampuan visual reasoning-mu untuk membaca ketiga panel: Price, OI, dan CVD dengan teliti.\n- Baca literal: baca level harga, nilai OI, dan slope CVD persis seperti yang terlihat di chart.\n- Kalibrasi confidence: hanya beri confidence >75% jika SEMUA kondisi checklist terlihat jelas.\n- Jujur: jika OI atau CVD tidak terbaca jelas atau terpotong, turunkan confidence dan catat di risk_note.\n- Jangan ekstrapolasi harga di luar yang terlihat. Entry/SL/TP harus dekat dengan harga current di chart.\n- Kembalikan JSON bersih saja. Tidak ada teks di luar JSON.\n`;
+    ? `\n=== OUTPUT LANGUAGE RULE ===\nWrite the prompt instructions in English (already done above).\nHOWEVER: ALL string values inside the JSON output MUST be written in Bahasa Indonesia.\nThis applies to: market_state, logic_match, checklist_match, risk_note, inverse_note, forex_recommendation.\nSignal values (BUY/SELL/NO_ENTRY) and setup_type (BULLISH/BEARISH/NEUTRAL/EXIT) remain in English.\n\n=== CLAUDE-SPECIFIC INSTRUCTIONS ===\nYou are Claude by Anthropic. Leverage your visual reasoning strength to carefully read ALL three panels: Price, OI, and CVD.\n- Be precise and literal: read exact price levels, OI values, and CVD slope from the chart as shown.\n- Be calibrated: only assign high confidence (>75%) when ALL checklist conditions are clearly visible.\n- Be honest: if OI or CVD is unclear or cut off in the screenshot, lower confidence and state it in risk_note.\n- Never extrapolate prices beyond what is visible. Entry/SL/TP must be close to current price on chart.\n- Return the JSON first, then immediately create the HTML artifact as instructed below.\n`
+    : `\n=== ATURAN OUTPUT ===\nSeluruh nilai string dalam JSON ditulis dalam Bahasa Indonesia.\n\n=== INSTRUKSI KHUSUS CLAUDE ===\nKamu adalah Claude buatan Anthropic. Gunakan kemampuan visual reasoning-mu untuk membaca ketiga panel: Price, OI, dan CVD dengan teliti.\n- Baca literal: baca level harga, nilai OI, dan slope CVD persis seperti yang terlihat di chart.\n- Kalibrasi confidence: hanya beri confidence >75% jika SEMUA kondisi checklist terlihat jelas.\n- Jujur: jika OI atau CVD tidak terbaca jelas atau terpotong, turunkan confidence dan catat di risk_note.\n- Jangan ekstrapolasi harga di luar yang terlihat. Entry/SL/TP harus dekat dengan harga current di chart.\n- Keluarkan JSON terlebih dahulu, lalu langsung buat HTML artifact sesuai instruksi di bawah.\n`;
 
   const QUADRANT = isEN
     ? `=== 4 OI + PRICE QUADRANTS ===
@@ -741,6 +819,9 @@ OI↑+Price↑ = Fresh LONGS (Long Buildup)   → Setup 1, 5, 7
 OI↑+Price↓ = Fresh SHORTS (Short Buildup) → Setup 2, 6, 8
 OI↓+Price↑ = Short Covering (Weak Rally)  → Setup 9 ⚠ RISIKO TINGGI
 OI↓+Price↓ = Long Liquidation/Exhaustion  → Setup 10 EXIT`;
+
+  // Render instruction block (appended to all modes when toggle is ON)
+  const renderBlock = buildRenderInstruction(currentMode, isEN);
 
   /* ─── SINGLE ─── */
   if(currentMode==='single'){
@@ -774,7 +855,7 @@ ${QUADRANT}
 ${tagCtx}${langInstruction}
 === SETUPS TO ANALYZE ===${buildSetupBlockEN(d,ids)}
 === JSON OUTPUT ===
-${JSON_TPL}`
+${JSON_TPL}${renderBlock}`
 : `=== OI + CVD FUTURES LAB — SINGLE CHART ===
 Model  : ${modelHint}
 Dibuat : ${new Date().toLocaleString('id-ID')}
@@ -801,7 +882,7 @@ ${QUADRANT}
 ${tagCtx}${langInstruction}
 === SETUP YANG DIANALISA ===${buildSetupBlock(d,ids)}
 === OUTPUT JSON ===
-${JSON_TPL}`;
+${JSON_TPL}${renderBlock}`;
     finalizePrompt(prompt,`${sym} · Single · ${tf} · ${isEN?'EN→ID':'ID'}`);
   }
 
@@ -835,7 +916,7 @@ You are an AI Master Analyst for the OI + CVD Futures Lab system.
 You will receive MULTIPLE charts from the SAME pair (${sym} — ${d.name}),
 different timeframes: ${tfs}.
 Analyze each TF independently, then provide a multi-TF conclusion.
-Return ONLY valid JSON. No other text.
+Return the JSON first, then immediately create the HTML artifact as instructed at the end.
 
 === CONTRACT: ${sym} — ${d.name} ===
 Pair          : ${d.pair}
@@ -852,7 +933,28 @@ ${buildInverseCtxEN(sym,d)}
 ${QUADRANT}
 ${tagCtx}${langInstruction}
 === SETUPS TO ANALYZE ===${buildSetupBlockEN(d,ids)}
-${mtfRules}`
+${mtfRules}
+
+=== JSON OUTPUT ===
+{
+  "analyses": [
+    { "timeframe": "<TF>", "setup_id": <1-10>, "market_state": "<...>", "setup_type": "<...>",
+      "logic_match": "<...>", "checklist_match": "<...>",
+      "trading_setup": {"signal":"<BUY|SELL|NO_ENTRY>","entry":"<...>","sl":"<...>","tp1":"<...>","tp2":"<...>","tp3":"<...>"},
+      "confidence": <40-95>, "risk_note": "<...>", "inverse_note": "<...>", "forex_recommendation": "<...>" },
+    { "timeframe": "<TF>", "..." }
+  ],
+  "multi_tf_summary": {
+    "bias": "<BULLISH|BEARISH|NEUTRAL|CONFLICTING>",
+    "aligned": <true|false>,
+    "final_signal": "<BUY|SELL|NO_ENTRY>",
+    "entry": "<level entry terbaik>",
+    "sl": "<SL berdasarkan HTF>",
+    "tp1": "<...>", "tp2": "<...>", "tp3": "<...>",
+    "confidence": <40-95>,
+    "reasoning": "<alasan singkat aligned atau conflicting>"
+  }
+}${renderBlock}`
 : `=== OI + CVD FUTURES LAB — MULTI TIMEFRAME ===
 Model  : ${modelHint}
 Dibuat : ${new Date().toLocaleString('id-ID')}
@@ -863,7 +965,7 @@ Kamu adalah AI Master Analyst OI + CVD Futures Lab.
 Kamu menerima BEBERAPA chart dari pair yang SAMA (${sym} — ${d.name}),
 timeframe berbeda: ${tfs}.
 Analisa setiap TF secara independen, lalu berikan kesimpulan multi-TF.
-Kembalikan HANYA JSON valid, tanpa teks lain.
+Keluarkan JSON terlebih dahulu, lalu langsung buat HTML artifact sesuai instruksi di akhir.
 
 === KONTRAK: ${sym} — ${d.name} ===
 Pair          : ${d.pair}
@@ -885,7 +987,7 @@ ${mtfRules}
 === OUTPUT JSON ===
 {
   "analyses": [
-    { "timeframe": "<TF>", "setup_id": <1-10>, "market_state": "<...>", "setup_type": "<...>",
+    { "timeframe": "<TF>", "setup_id": <1-10>, "market_state": "<kondisi pasar>", "setup_type": "<...>",
       "logic_match": "<...>", "checklist_match": "<...>",
       "trading_setup": {"signal":"<BUY|SELL|NO_ENTRY>","entry":"<...>","sl":"<...>","tp1":"<...>","tp2":"<...>","tp3":"<...>"},
       "confidence": <40-95>, "risk_note": "<...>", "inverse_note": "<...>", "forex_recommendation": "<...>" },
@@ -901,7 +1003,7 @@ ${mtfRules}
     "confidence": <40-95>,
     "reasoning": "<alasan singkat aligned atau conflicting>"
   }
-}`;
+}${renderBlock}`;
     finalizePrompt(prompt,`${sym} · Multi TF · ${tfs} · ${isEN?'EN→ID':'ID'}`);
   }
 
@@ -931,26 +1033,22 @@ Webapp  : https://tukulkacang.github.io/futures-oi-cvd-lab
 Tutorial: https://tukulkacang.github.io/futures-oi-cvd-lab/tutorial.html
 
 You are an AI Master Analyst for the OI + CVD Futures Lab system.
-You will receive MULTIPLE charts — possibly from DIFFERENT pairs AND multiple timeframes
-(e.g. 6J1 1H, 6J1 4H, 6E1 1H, 6E1 4H, 6B1 1H — all mixed together).
+You will receive MULTIPLE charts — possibly from DIFFERENT pairs AND multiple timeframes.
 
 MANDATORY STEPS:
-1. DETECT symbol from chart label (e.g. "6J1!", "Euro FX Futures", "British Pound Futures", "GC1!", etc.)
-2. DETECT timeframe from TF label on chart (1h, 4h, D, etc.)
+1. DETECT symbol from chart label
+2. DETECT timeframe from TF label on chart
 3. APPLY parameters matching the detected symbol from the table below
 4. ANALYZE OI + CVD + Price per chart independently using 4 quadrants and 10 setups
-5. GROUP by symbol — if same symbol has multiple TFs:
-   - Create a "multi_tf_summary" for that symbol (HTF=bias, LTF=entry timing)
-   - If ≥2 TFs conflict → signal = NO_ENTRY for that group, score = 0
-   - Use multi_tf_summary confidence as the group score
+5. GROUP by symbol — if same symbol has multiple TFs: create "multi_tf_summary"
 6. CALCULATE score: (confidence×0.6)+(win_rate×0.4) + bonus/penalty
 7. RANK all groups/singles from highest to lowest score
-Return ONLY valid JSON array. No other text.
+Return the JSON array first, then immediately create the HTML artifact as instructed at the end.
 
 === ALL CONTRACT PARAMETERS ===${allParamsBlock}
 ${QUADRANT}
 ${tagCtx}${langInstruction}
-=== SETUP REFERENCE (10 Setups, win rate adjusted per symbol) ===${buildSetupBlockEN(DATA['6E1'],ids)}
+=== SETUP REFERENCE ===${buildSetupBlockEN(DATA['6E1'],ids)}
 === SCORE FORMULA ===
 base    = (confidence × 0.6) + (win_rate × 0.4)
 bonus   : setup ∈ {1,2,5,6} → +5 | setup ∈ {3,4} and confidence≥75 → +3
@@ -964,35 +1062,24 @@ signal=NO_ENTRY → score = 0
     "detected_symbol": "<symbol>",
     "timeframes_analyzed": ["<TF1>", "<TF2>"],
     "score": <float>,
-    "is_grouped": <true if multiple TFs for same symbol, false if single>,
+    "is_grouped": <true|false>,
     "per_tf": [
-      {
-        "timeframe": "<TF>",
-        "setup_id": <1-10>,
-        "market_state": "<kondisi pasar — IN BAHASA INDONESIA>",
-        "setup_type": "<BULLISH|BEARISH|NEUTRAL|EXIT>",
-        "logic_match": "<penjelasan OI/CVD/Price — IN BAHASA INDONESIA>",
-        "checklist_match": "<kondisi terpenuhi — IN BAHASA INDONESIA>",
-        "confidence": <40-95>
-      }
+      { "timeframe": "<TF>", "setup_id": <1-10>, "market_state": "<— IN BAHASA INDONESIA>",
+        "setup_type": "<BULLISH|BEARISH|NEUTRAL|EXIT>", "logic_match": "<— IN BAHASA INDONESIA>",
+        "checklist_match": "<— IN BAHASA INDONESIA>", "confidence": <40-95> }
     ],
     "multi_tf_summary": {
-      "bias": "<BULLISH|BEARISH|NEUTRAL|CONFLICTING>",
-      "aligned": <true|false>,
-      "final_signal": "<BUY|SELL|NO_ENTRY>",
-      "entry": "<level entry>",
-      "sl": "<stop loss>",
-      "tp1": "<TP1>", "tp2": "<TP2>", "tp3": "<TP3>",
-      "confidence": <40-95>,
-      "reasoning": "<alasan singkat — IN BAHASA INDONESIA>"
+      "bias": "<BULLISH|BEARISH|NEUTRAL|CONFLICTING>", "aligned": <true|false>,
+      "final_signal": "<BUY|SELL|NO_ENTRY>", "entry": "<...>", "sl": "<...>",
+      "tp1": "<...>", "tp2": "<...>", "tp3": "<...>", "confidence": <40-95>,
+      "reasoning": "<— IN BAHASA INDONESIA>"
     },
-    "risk_note": "<invalidasi — IN BAHASA INDONESIA>",
-    "inverse_note": "<isi jika inverse>",
-    "forex_recommendation": "<isi jika inverse>"
+    "risk_note": "<— IN BAHASA INDONESIA>",
+    "inverse_note": "<fill if inverse>",
+    "forex_recommendation": "<fill if inverse>"
   },
-  { "rank": 2, "..." },
-  ...
-]`
+  { "rank": 2, "..." }
+]${renderBlock}`
 : `=== OI + CVD FUTURES LAB — MULTI PAIR + RANKING ===
 Model  : ${modelHint}
 Dibuat : ${new Date().toLocaleString('id-ID')}
@@ -1000,26 +1087,22 @@ Webapp : https://tukulkacang.github.io/futures-oi-cvd-lab
 Tutorial: https://tukulkacang.github.io/futures-oi-cvd-lab/tutorial.html
 
 Kamu adalah AI Master Analyst OI + CVD Futures Lab.
-Kamu menerima BEBERAPA chart — bisa dari pair BERBEDA dan TF BERBEDA sekaligus
-(contoh: 6J1 1H, 6J1 4H, 6E1 1H, 6E1 4H, 6B1 1H — semua dicampur).
+Kamu menerima BEBERAPA chart dari pair BERBEDA dan TF BERBEDA sekaligus.
 
 LANGKAH WAJIB:
-1. DETEKSI simbol dari label chart (contoh: "6J1!", "Euro FX Futures", "British Pound Futures", "GC1!", dll)
-2. DETEKSI timeframe dari label TF di chart (1h, 4h, D, dst)
+1. DETEKSI simbol dari label chart
+2. DETEKSI timeframe dari label TF di chart
 3. TERAPKAN parameter sesuai simbol yang terdeteksi dari tabel di bawah
 4. ANALISA OI + CVD + Price per chart secara independen sesuai 4 kuadran dan 10 setup
-5. KELOMPOKKAN per simbol — kalau simbol yang sama punya beberapa TF:
-   - Buat "multi_tf_summary" untuk simbol itu (HTF=bias utama, LTF=timing entry)
-   - Kalau ≥2 TF bertentangan → signal = NO_ENTRY untuk grup itu, skor = 0
-   - Gunakan confidence dari multi_tf_summary sebagai skor grup
+5. KELOMPOKKAN per simbol — kalau simbol yang sama punya beberapa TF: buat "multi_tf_summary"
 6. HITUNG skor: (confidence×0.6)+(win_rate×0.4) + bonus/penalti
 7. RANKING semua grup/single dari skor tertinggi ke terendah
-Kembalikan HANYA JSON array valid, tanpa teks lain.
+Keluarkan JSON array terlebih dahulu, lalu langsung buat HTML artifact sesuai instruksi di akhir.
 
 === TABEL PARAMETER SEMUA KONTRAK ===${allParamsBlock}
 ${QUADRANT}
 ${tagCtx}${langInstruction}
-=== SETUP REFERENSI (10 Setup, win rate menyesuaikan adj per simbol) ===${buildSetupBlock(DATA['6E1'],ids)}
+=== SETUP REFERENSI ===${buildSetupBlock(DATA['6E1'],ids)}
 === RUMUS SKOR ===
 base    = (confidence × 0.6) + (win_rate × 0.4)
 bonus   : setup ∈ {1,2,5,6} → +5 | setup ∈ {3,4} dan confidence≥75 → +3
@@ -1033,35 +1116,24 @@ signal=NO_ENTRY → skor = 0
     "detected_symbol": "<simbol>",
     "timeframes_analyzed": ["<TF1>", "<TF2>"],
     "score": <float>,
-    "is_grouped": <true jika beberapa TF untuk simbol sama, false jika single>,
+    "is_grouped": <true|false>,
     "per_tf": [
-      {
-        "timeframe": "<TF>",
-        "setup_id": <1-10>,
-        "market_state": "<kondisi pasar>",
-        "setup_type": "<BULLISH|BEARISH|NEUTRAL|EXIT>",
-        "logic_match": "<penjelasan OI/CVD/Price, min 2 kalimat>",
-        "checklist_match": "<kondisi terpenuhi; semicolon>",
-        "confidence": <40-95>
-      }
+      { "timeframe": "<TF>", "setup_id": <1-10>, "market_state": "<kondisi pasar>",
+        "setup_type": "<BULLISH|BEARISH|NEUTRAL|EXIT>", "logic_match": "<min 2 kalimat>",
+        "checklist_match": "<kondisi terpenuhi>", "confidence": <40-95> }
     ],
     "multi_tf_summary": {
-      "bias": "<BULLISH|BEARISH|NEUTRAL|CONFLICTING>",
-      "aligned": <true|false>,
-      "final_signal": "<BUY|SELL|NO_ENTRY>",
-      "entry": "<level entry>",
-      "sl": "<stop loss>",
-      "tp1": "<TP1>", "tp2": "<TP2>", "tp3": "<TP3>",
-      "confidence": <40-95>,
+      "bias": "<BULLISH|BEARISH|NEUTRAL|CONFLICTING>", "aligned": <true|false>,
+      "final_signal": "<BUY|SELL|NO_ENTRY>", "entry": "<...>", "sl": "<...>",
+      "tp1": "<...>", "tp2": "<...>", "tp3": "<...>", "confidence": <40-95>,
       "reasoning": "<alasan singkat>"
     },
     "risk_note": "<kondisi invalidasi>",
     "inverse_note": "<isi jika inverse pair>",
     "forex_recommendation": "<rekomendasi forex jika inverse>"
   },
-  { "rank": 2, "..." },
-  ...
-]`;
+  { "rank": 2, "..." }
+]${renderBlock}`;
     finalizePrompt(prompt,`Multi Pair · Auto-detect · Ranking · ${isEN?'EN→ID':'ID'}`);
   }
 }
@@ -1085,6 +1157,7 @@ function syntaxHL(t){
     .replace(/\b(EXIT)\b/g,'<span style="color:#0ea5e9">$1</span>')
     .replace(/\b(NO_ENTRY)\b/g,'<span style="color:#f43f5e">$1</span>')
     .replace(/(⚠[^\n]*)/g,'<span style="color:#f59e0b">$1</span>')
+    .replace(/(⚡[^\n]*)/g,'<span style="color:#00d4a0">$1</span>')
     .replace(/(https?:\/\/[^\s<]+)/g,'<span style="color:#7dd3fc">$1</span>')
     .replace(/(\/\/.+)/g,'<span style="color:#6b7280;font-style:italic">$1</span>');
 }
@@ -1103,7 +1176,6 @@ function copyPrompt(){
 
 function copyClean(){
   if(!lastPrompt) return;
-  // Hapus baris header: === OI + CVD..., Model :, Created :, Webapp :, Tutorial:
   const lines = lastPrompt.split('\n');
   const skipPatterns = [
     /^=== OI \+ CVD FUTURES LAB/,
@@ -1113,7 +1185,6 @@ function copyClean(){
     /^Webapp\s*:/,
     /^Tutorial\s*:/,
   ];
-  // Cari baris pertama yang bukan header dan bukan kosong
   let startIdx = 0;
   for(let i=0; i<lines.length; i++){
     const line = lines[i].trim();
@@ -1133,6 +1204,7 @@ function copyClean(){
     setTimeout(()=>{btn.innerHTML=ori;btn.style.color='var(--accent)';},2000);
   });
 }
+
 function downloadPrompt(){
   if(!lastPrompt) return;
   const lbl=document.getElementById('symLabel').textContent.replace(/[^a-zA-Z0-9]/g,'_');
@@ -1140,6 +1212,7 @@ function downloadPrompt(){
   a.href=URL.createObjectURL(new Blob([lastPrompt],{type:'text/plain'}));
   a.download=`prompt_${lbl}_${Date.now()}.txt`; a.click();
 }
+
 function resetAll(){
   selectedSetups.clear(); [1,2,3,4,5,6,7,8,9,10].forEach(i=>selectedSetups.add(i));
   activeTags.clear(); activeTFs.clear(); activeTFs.add('1H'); activeTFs.add('4H');
@@ -1147,7 +1220,8 @@ function resetAll(){
   document.querySelectorAll('#tfMultiTags .tag-chip').forEach(el=>{
     el.classList.toggle('active',activeTFs.has(el.dataset.tf));
   });
-  selectedModel='gemini';
+  selectedModel='gemini'; autoRenderEnabled=true;
+  document.getElementById('renderToggleSwitch').classList.add('on');
   document.getElementById('sym').value='6J1';
   document.getElementById('tf').value='1H';
   setMode('single'); onSymChange(); renderModelGrid(); setLang('en');
@@ -1168,7 +1242,6 @@ function renderResult() {
 
   let data;
   try {
-    // Bersihkan markdown code block wrapper dari Claude
     let cleaned = raw
       .replace(/^```json\s*/i, '')
       .replace(/^```\s*/i, '')
@@ -1180,14 +1253,11 @@ function renderResult() {
     errEl.style.display = 'block'; return;
   }
 
-  // Normalise: bisa array (multi pair) atau object single/multi-tf
   let items = [];
   if (Array.isArray(data)) {
-    // multi pair format
     items = data;
   } else if (data.analyses) {
-    // single pair multi-tf format
-    items = [{ rank:1, detected_symbol: data.analyses[0]?.timeframe ? 'Chart' : 'Chart',
+    items = [{ rank:1, detected_symbol: 'Chart',
       timeframes_analyzed: data.analyses.map(a=>a.timeframe),
       score: data.multi_tf_summary?.confidence || 0,
       is_grouped: true,
@@ -1198,7 +1268,6 @@ function renderResult() {
       forex_recommendation: data.multi_tf_summary?.forex_recommendation || '',
     }];
   } else if (data.setup_id) {
-    // single chart format
     items = [{ rank:1, detected_symbol:'Chart', timeframes_analyzed:['—'],
       score: data.confidence, is_grouped:false,
       per_tf:[{ timeframe:'—', setup_id:data.setup_id, market_state:data.market_state,
@@ -1230,7 +1299,6 @@ function renderResult() {
     const medal = MEDALS[idx] || `#${idx+1}`;
     const aligned = summary.aligned !== false;
 
-    // per_tf rows
     let tfRows = '';
     if (item.per_tf && item.per_tf.length) {
       tfRows = item.per_tf.map(tf =>
@@ -1238,7 +1306,6 @@ function renderResult() {
       ).join('');
     }
 
-    // price boxes
     const prices = [
       {label:'Entry', val:summary.entry||'—', cls:'e'},
       {label:'Stop Loss', val:summary.sl||'—', cls:'s'},
@@ -1269,15 +1336,11 @@ function renderResult() {
     </div>
     <span class="rc-pill ${pillCls}">${pillLabel}</span>
   </div>
-
   ${item.per_tf && item.per_tf.length > 1 ? `<div class="rc-section">Kondisi per timeframe</div><div class="rc-tfs">${tfRows}</div><div class="rc-divider"></div>` : item.per_tf?.length===1 ? `<div class="rc-tfs">${tfRows}</div><div class="rc-divider"></div>` : ''}
-
   <div class="rc-section">Level trading</div>
   <div class="rc-prices">${priceBoxes}</div>
-
   <div class="rc-section">Confidence AI: ${conf}%</div>
   <div class="rc-conf-bar"><div class="rc-conf-fill" style="width:${conf}%"></div></div>
-
   ${summary.reasoning ? `<div class="rc-reason">${summary.reasoning}</div>` : ''}
   ${inverseHtml}
   ${forexHtml}
